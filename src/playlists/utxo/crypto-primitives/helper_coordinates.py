@@ -133,7 +133,7 @@ class Character(Group):
     ):
         Group.__init__(self, **kwargs)
 
-        svg_path = "svg/excalidraw/person-w.svg"
+        svg_path = "../../../../assets/svg/excalidraw/person-w.svg"
         self.person = SVGMobject(svg_path)
         self.add(self.person)
 
@@ -147,7 +147,7 @@ class Character(Group):
             faceColor = PEOPLE[name]["faceColor"]
 
             # Option to show emotion
-            face_path = f"./svg/openMoji/{expr}-{faceColor}.svg"
+            face_path = f"../../../../assets/svg/openMoji/{expr}-{faceColor}.svg"
             face = SVGMobject(face_path).shift(self.c + UP * 0.52 + RIGHT * 0.068).scale(0.53)
             self.add(face)
 
@@ -189,18 +189,18 @@ class Character(Group):
 
 
 # >>> Hash label Mobject >>>
-class HashLabel(Group):
-    def __init__(
-        self,
-        txt: str | None = None,
-        **kwargs
-    ):
-        lbl_svg_ = SVGMobject("./svg/excalidraw/label.svg")
-
-        if txt == None:
-            self.add(lbl_txt_)
-
-        lbl_txt_ = 
+# class HashLabel(Group):
+#     def __init__(
+#         self,
+#         txt: str | None = None,
+#         **kwargs
+#     ):
+#         lbl_svg_ = SVGMobject("../../../../assets/svg/excalidraw/label.svg")
+#
+#         if txt == None:
+#             self.add(lbl_txt_)
+#
+#         lbl_txt_ = 
 
 # <<< Hash label Mobject <<<
 
@@ -235,9 +235,9 @@ class AnimateCharacter(Scene):
 # >>> Colored SVGs >>>
 class Face(Scene):
     def construct(self):
-        silhouette = SVGMobject("svg/excalidraw/person.svg")
-        face = SVGMobject("./svg/openMoji/Face-With-Open-Mouth-SkyBlue.svg").shift(UP * 0.52 + RIGHT * 0.065).scale(0.53)
-        face2 = SVGMobject("./svg/openMoji/Grinning-Face-SkyBlue.svg").shift(UP * 0.52 + RIGHT * 0.065).scale(0.53)
+        silhouette = SVGMobject("../../../../assets/svg/excalidraw/person.svg")
+        face = SVGMobject("../../../../assets/svg/openMoji/Face-With-Open-Mouth-SkyBlue.svg").shift(UP * 0.52 + RIGHT * 0.065).scale(0.53)
+        face2 = SVGMobject("../../../../assets/svg/openMoji/Grinning-Face-SkyBlue.svg").shift(UP * 0.52 + RIGHT * 0.065).scale(0.53)
         self.add(silhouette)
         # self.add(face)
         # self.add(face2)

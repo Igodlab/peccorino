@@ -29,8 +29,8 @@ class Title(Scene):
 # class NeedForHashes(Scene):
 class NeedForHashes(MovingCameraScene):
     def construct(self):
-        world = SVGMobject("svg/excalidraw/world.svg").scale(2.5)
-        world_network = SVGMobject("./svg/excalidraw/world-network.svg").scale(2.5)
+        world = SVGMobject("../../../../assets/svg/excalidraw/world.svg").scale(2.5)
+        world_network = SVGMobject("../../../../assets/svg/excalidraw/world-network.svg").scale(2.5)
         person = []
         
         vec_world_xy = [
@@ -90,9 +90,9 @@ class NeedForHashes(MovingCameraScene):
         self.wait()
         
         # Gossiping
-        folder_back = SVGMobject("./svg/notoEmoji/File-Folder-back-only.svg")
-        folder_front = SVGMobject("./svg/notoEmoji/File-Folder-cover-only.svg")
-        msg_file = SVGMobject("./svg/excalidraw/msg-for-signature.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180).scale(0.85)
+        folder_back = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-back-only.svg")
+        folder_front = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-cover-only.svg")
+        msg_file = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180).scale(0.85)
         msg = Group(folder_back, msg_file, folder_front).scale(0.2)
 
         folder_back.set_z_index(1)
@@ -143,16 +143,16 @@ class NeedForHashes(MovingCameraScene):
 
 
         # Zoom in and show a hash
-        msg_file_hashed = SVGMobject("./svg/excalidraw/msg-for-signature-encrypted.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180)
+        msg_file_hashed = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature-encrypted.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180)
         size_msg_file_ = (ith_person_msg_in_ledger[0][0][1].width, ith_person_msg_in_ledger[0][0][1].height)
         msg_file_hashed.scale_to_fit_width(size_msg_file_[0])
 
-        msg_file_hashed_svg_ = SVGMobject("./svg/excalidraw/label.svg")
+        msg_file_hashed_svg_ = SVGMobject("../../../../assets/svg/excalidraw/label.svg")
         msg_file_hashed_txt_ = MathTex(r"44.\hfil .\hfill . a7", color=BLACK, font_size=38).move_to(centerLabel(msg_file_hashed_svg_)).rotate(angle=-PI/4)
         msg_file_hashed_lbl = Group(msg_file_hashed_svg_, msg_file_hashed_txt_).scale(0.25)
         # msg_file_hashed_lbl = Group(msg_file_hashed, msg_file_hashed_lbl_)
 
-        hash_sticker = SVGMobject("./svg/excalidraw/sticker-hash.svg").scale(0.6)
+        hash_sticker = SVGMobject("../../../../assets/svg/excalidraw/sticker-hash.svg").scale(0.6)
     
         msg_file_hashed.set_z_index(4)
         msg_file_hashed_lbl.set_z_index(100)
@@ -221,21 +221,21 @@ class Folder(Scene):
     def construct(self):
         DEBUG_MODE = False
 
-        folder_back = SVGMobject("./svg/notoEmoji/File-Folder-back-only.svg")
-        folder_front = SVGMobject("./svg/notoEmoji/File-Folder-cover-only.svg")
-        msg = SVGMobject("./svg/excalidraw/msg-for-signature.svg").shift(UP * 2 + LEFT * 2)
-        msg_hashed = SVGMobject("./svg/excalidraw/msg-for-signature-encrypted.svg").shift(DOWN + LEFT * 2)
-        code = SVGMobject("./svg/excalidraw/Code-Editor.svg").shift(UP * 2)
-        code_hashed = SVGMobject("./svg/excalidraw/Code-Editor-encrypted.svg").shift(DOWN)
-        nft = SVGMobject("./svg/excalidraw/bored-ape.svg").shift(UP * 2 + RIGHT * 2)
-        nft_hashed = SVGMobject("./svg/excalidraw/bored-ape-encrypted.svg").shift(DOWN + RIGHT * 2)
-        # crypto_coin = SVGMobject("./svg/excalidraw/bitcoin-coins.svg").shift(UP * 2 + LEFT * 4)
-        nft_lbl_svg = SVGMobject("./svg/excalidraw/label.svg") 
+        folder_back = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-back-only.svg")
+        folder_front = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-cover-only.svg")
+        msg = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature.svg").shift(UP * 2 + LEFT * 2)
+        msg_hashed = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature-encrypted.svg").shift(DOWN + LEFT * 2)
+        code = SVGMobject("../../../../assets/svg/excalidraw/Code-Editor.svg").shift(UP * 2)
+        code_hashed = SVGMobject("../../../../assets/svg/excalidraw/Code-Editor-encrypted.svg").shift(DOWN)
+        nft = SVGMobject("../../../../assets/svg/excalidraw/bored-ape.svg").shift(UP * 2 + RIGHT * 2)
+        nft_hashed = SVGMobject("../../../../assets/svg/excalidraw/bored-ape-encrypted.svg").shift(DOWN + RIGHT * 2)
+        # crypto_coin = SVGMobject("../../../../assets/svg/excalidraw/bitcoin-coins.svg").shift(UP * 2 + LEFT * 4)
+        nft_lbl_svg = SVGMobject("../../../../assets/svg/excalidraw/label.svg") 
         nft_lbl_txt = MathTex(r"15.\hfil .\hfill . e9", color=BLACK, font_size=38).move_to(centerLabel(nft_lbl_svg)).rotate(angle=-PI/4)
         nft_lbl = Group(nft_lbl_svg, nft_lbl_txt).scale(0.5).align_to(nft, nft.get_corner(UR))
         nft_w_lbl = Group(nft, nft_lbl)
 
-        hash_lbl = SVGMobject("./svg/excalidraw/sticker-hash.svg").set_opacity(0.5)
+        hash_lbl = SVGMobject("../../../../assets/svg/excalidraw/sticker-hash.svg").set_opacity(0.5)
 
         folder_back.set_z_index(1)
         nft.set_z_index(2)
@@ -323,9 +323,9 @@ class Folder(Scene):
 
 class GossipMessage(Scene):
     def construct(self):
-        folder_back = SVGMobject("./svg/notoEmoji/File-Folder-back-only.svg")
-        folder_front = SVGMobject("./svg/notoEmoji/File-Folder-cover-only.svg")
-        msg = SVGMobject("./svg/excalidraw/msg-for-signature.svg").shift(UP * 2)
+        folder_back = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-back-only.svg")
+        folder_front = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-cover-only.svg")
+        msg = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature.svg").shift(UP * 2)
 
         folder_back.set_z_index(1)
         msg.set_z_index(2)
@@ -349,7 +349,7 @@ class NeedForSignatures(Scene):
         alice = Character(name="Alice", show_name=True).shift(UL * 2 + LEFT * 2)
         bob = Character(name="Bob", show_name=True).shift(UR * 2 + RIGHT * 2)
         mallory = Character(name="Mallory", show_name=True, expr="Smiling-Face-With-Horns").shift(DOWN * 2) # .shift(UP * 0.8)
-        msg = SVGMobject("svg/excalidraw/msg-for-signature").next_to(alice, RIGHT).scale(0.75)
+        msg = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature").next_to(alice, RIGHT).scale(0.75)
 
         self.add(alice, bob)
         self.wait(2)
@@ -367,9 +367,9 @@ class NeedForSignatures(Scene):
 # >>> Array of folders in Ledger >>>
 class ArrayFolders(Scene):
     def construct(self):
-        folder_back = SVGMobject("./svg/notoEmoji/File-Folder-back-only.svg")
-        folder_front = SVGMobject("./svg/notoEmoji/File-Folder-cover-only.svg")
-        msg_file = SVGMobject("./svg/excalidraw/msg-for-signature.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180).scale(0.85)
+        folder_back = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-back-only.svg")
+        folder_front = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-cover-only.svg")
+        msg_file = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180).scale(0.85)
         msg = Group(folder_back, folder_front, msg_file).scale(0.2)
 
         folder_back.set_z_index(1)
