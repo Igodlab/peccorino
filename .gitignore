@@ -4,6 +4,7 @@
 
 # Manim byproducts
 media/
+__pycache__/
 
 # Rust byproducts
 !.cargo/
