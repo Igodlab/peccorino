@@ -1,6 +1,7 @@
 from manim import *
 import numpy as np
-from helper_coordinates import PEOPLE, centerLabel, Character, CoordinateHelper
+from helper_coordinates import PEOPLE, centerLabel, Character, HashLabel
+from utils import CoordinateHelper
 
 # random Generator as a global variable
 rng = np.random.default_rng(seed=48)
@@ -9,19 +10,20 @@ rng = np.random.default_rng(seed=48)
 class Title(Scene):
     def construct(self):
         # >>> Ingredient 1: Hashes & Signatures
-        sticker_one = ImageMobject("png/excalidraw/sticker_one.png").shift(UP * 0.25 + LEFT * 3)
-        sticker_hash = ImageMobject("png/excalidraw/sticker-hash.png").shift(UP * 0.5)
-        sticker_signature = ImageMobject("png/excalidraw/sticker_signature.png").shift(RIGHT * 3 + UP * 0.5)
+        sticker_one = SVGMobject("../../../../assets/svg/excalidraw/sticker_one.svg").shift(UP * 0.5 + LEFT * 3)
+        sticker_hash = SVGMobject("../../../../assets/svg/excalidraw/sticker-hash.svg").shift(UP * 0.5)
+        sticker_signature = SVGMobject("../../../../assets/svg/excalidraw/sticker_signature.svg").shift(RIGHT * 3 + UP * 0.5)
 
         txt = Text("Hashes and Signatures", color=XTXT, font="Excalifont", font_size=48).shift(DOWN * 2)
 
-        self.play(FadeIn(sticker_one))
-        # self.wait()
-        self.play(FadeIn(sticker_hash))
-        # self.wait()
-        self.play(FadeIn(sticker_signature))
-        # self.wait()
-        self.play(Write(txt))
+        self.play(LaggedStart(
+            FadeIn(sticker_one),
+            FadeIn(sticker_hash),
+            FadeIn(sticker_signature),
+            Write(txt),
+            lag_ratio=0.5,
+            run_time=4,
+        ))
         self.wait(3)
 # <<< 00 - Title <<<
 
@@ -71,8 +73,8 @@ class NeedForHashes(MovingCameraScene):
         ledger = VGroup(ledger_box, ledger_title).shift(DOWN * 0.3)
 
         ax_x_range = 6
-        ax_y_range = 6
-        nm = (ax_x_range - 1) * (ax_y_range - 1)
+        ax_y_range = 5
+        nm = (ax_x_range - 1) * (ax_y_range - 1) # coordinate index skips points at coordinate axes
         axes = Axes(
                     x_range=[0, ax_x_range, 1],
                     y_range=[0, ax_y_range, 1],
@@ -93,7 +95,12 @@ class NeedForHashes(MovingCameraScene):
         folder_back = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-back-only.svg")
         folder_front = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-cover-only.svg")
         msg_file = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180).scale(0.85)
+        msg_file_hashed = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature-encrypted.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180)
+        size_msg_file_ = (msg_file.width, msg_file.height)
+        msg_file_hashed.scale_to_fit_width(size_msg_file_[0])
+        # grouped msg: ([0],        [1],        [2]) 
         msg = Group(folder_back, msg_file, folder_front).scale(0.2)
+
 
         folder_back.set_z_index(1)
         msg_file.set_z_index(2)
@@ -102,7 +109,8 @@ class NeedForHashes(MovingCameraScene):
 
         # Participants for Gossiping
         ith_person_msg = []
-        ith_person_msg_in_ledger = []
+        ith_msg_ledger = []
+        arr = []
 
         # weights for randomized folder placement in ledger array
         def expWeights(size=10):
@@ -117,104 +125,127 @@ class NeedForHashes(MovingCameraScene):
         coordinates_ordered = [(i, j) for j in range(ax_y_range - 1, 0, -1) for i in range(1, ax_x_range)] # x_range goes from left to right, y_range from top to bottom
         coordinates_rand = [coordinates_ordered[i] for i in coordinates_rand_ix]
         k = 0
-        for i, pi in enumerate(person[pi] for pi in rng.choice(range(10), replace=False, size=5)):
+        for i in range(len([person[pi] for pi in rng.choice(range(10), replace=False, size=5)])):
             n_targets = rng.choice([1,2,3,4])
-            ith_person_msg.append([msg.copy().scale(0.75) for _ in range(n_targets)])
-            ith_person_msg_in_ledger.append([msg.copy() for _ in range(n_targets)])
-            targets_ix = rng.choice([k for k in range(len(person)) if k != i], size=n_targets)
-            targets = [person[k] for k in targets_ix]
-            # ax_ixs = 110G
+            ith_person_msg += [msg.copy().scale(0.75) for _ in range(n_targets)]
+            ith_msg_ledger += [msg.copy() for _ in range(n_targets)]
+            targets_ix = rng.choice([l for l in range(len(person)) if l != i], size=n_targets)
+            targets = [person[l] for l in targets_ix]
+
             for j in range(len(targets)):
-                arr = CurvedArrow(
+                ith_person_msg[k].move_to(person[i].get_center())
+                ith_msg_ledger[k].move_to(axes.c2p(*coordinates_rand[k]))
+                arr.append(CurvedArrow(
                     start_point = person[i].get_center(),
                     end_point = targets[j].get_center() + DOWN * 0.3,
                     angle=-PI/3,
                     color=PURE_GREEN,
                     tip_length=0.2
-                )
+                ))
                 self.play(
-                    FadeIn(arr),
-                    FadeIn(ith_person_msg[i][j].shift(person[i].get_center())),
-                    MoveAlongPath(ith_person_msg[i][j], arr),
-                    run_time=2,
+                    FadeIn(arr[k]),
+                    FadeIn(ith_person_msg[k]),
+                    MoveAlongPath(ith_person_msg[k], arr[k]),
+                    run_time=1.25,
                 )
-                self.add(ith_person_msg_in_ledger[i][j].move_to(axes.c2p(coordinates_rand[k][0], coordinates_rand[k][1])))
+                self.add(ith_msg_ledger[k])
                 k += 1
 
 
-        # Zoom in and show a hash
-        msg_file_hashed = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature-encrypted.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180)
-        size_msg_file_ = (ith_person_msg_in_ledger[0][0][1].width, ith_person_msg_in_ledger[0][0][1].height)
-        msg_file_hashed.scale_to_fit_width(size_msg_file_[0])
-
-        msg_file_hashed_svg_ = SVGMobject("../../../../assets/svg/excalidraw/label.svg")
-        msg_file_hashed_txt_ = MathTex(r"44.\hfil .\hfill . a7", color=BLACK, font_size=38).move_to(centerLabel(msg_file_hashed_svg_)).rotate(angle=-PI/4)
-        msg_file_hashed_lbl = Group(msg_file_hashed_svg_, msg_file_hashed_txt_).scale(0.25)
-        # msg_file_hashed_lbl = Group(msg_file_hashed, msg_file_hashed_lbl_)
-
+        # Add hashes and labels in the array and reorder
         hash_sticker = SVGMobject("../../../../assets/svg/excalidraw/sticker-hash.svg").scale(0.6)
-    
-        msg_file_hashed.set_z_index(4)
-        msg_file_hashed_lbl.set_z_index(100)
-        hash_sticker.set_z_index(150)
-        self.remove(hash_sticker, msg_file_hashed, msg_file_hashed_lbl)
 
-        self.camera.frame.save_state()
-        self.play(
-            self.camera.frame.animate.move_to(ith_person_msg_in_ledger[0][0]).set(width=ith_person_msg_in_ledger[0][0].width*5),
+        ith_hash_sticker = [] # blue hash sticker
+        ith_msg_file_hashed = [] # encrypted hashed file
+        ith_msg_ledger_lbl = [] # label w/ hash
+        ith_obj_ledger = [] # full final hashed object
+        transform_file_to_hashed = []
+        time_lbl = []
+
+        for i in range(len(ith_msg_ledger)):
+            ith_msg_file_hashed.append(msg_file_hashed.copy())
+            ith_msg_file_hashed[i].scale_to_fit_width(size_msg_file_[0])
+            ith_msg_file_hashed[i].scale(0.2) # after setting to width we scaled down by 0.2
+            ith_msg_file_hashed[i].move_to(ith_msg_ledger[i][1].get_center())
+            ith_msg_file_hashed[i].set_z_index(10 + i)
+
+            ith_msg_ledger_lbl.append(HashLabel(f"obj {i+1}", hash_text=False))
+            ith_msg_ledger_lbl[i].move_to(ith_msg_ledger[i].get_center() + RIGHT * 0.1 + DOWN * 0.1)
+            ith_msg_ledger_lbl[i].set_z_index(100 + i)
+
+            ith_hash_sticker.append(hash_sticker.copy().set_opacity(0.25)) #.move_to(ith_msg_ledger[i]).get_center()) 
+            ith_hash_sticker[i].move_to(ith_msg_ledger[i].get_center())
+            ith_hash_sticker[i].set_z_index(150 + i)
+
+            transform_file_to_hashed.append(Transform(ith_msg_ledger[i][1], ith_msg_file_hashed[i]))
+
+            ith_obj_ledger.append(Group(ith_msg_ledger[i], ith_msg_file_hashed[i], ith_msg_ledger_lbl[i]))
+
+            time_lbl_ = f"time\\quad{i+1}"
+            time_lbl.append(MathTex(time_lbl_, font_size=18, color=XTXT))
+
+
+        self.remove(
+            *ith_msg_file_hashed,
+            *ith_msg_ledger_lbl,
+            *ith_hash_sticker,
         )
-        self.wait(3)
-        self.play(
-            ith_person_msg_in_ledger[0][0][1].animate.shift(UP * 0.3),
-            FadeIn(hash_sticker.set_opacity(0.25).move_to(ith_person_msg_in_ledger[0][0].get_center())),
+        
+        # print(f"ith_msg_file_hashed={ith_msg_file_hashed}")
+        # print(f"ith_hash_sticker={ith_hash_sticker}")
+        # print(f"ith_msg_ledger_lbl={ith_msg_ledger_lbl}")
+        # print(f"ith_msg_ledger (obj [1])={[mob[1] for mob in ith_msg_ledger]}")
+
+        # Zoom in and show a hash for first msg file
+        self.camera.frame.save_state()
+        self.play(LaggedStart(
+            self.camera.frame.animate.move_to(ith_msg_ledger[0]).set(width=ith_msg_ledger[0].width*5),
+            FadeIn(ith_hash_sticker[0]),
+            ith_msg_ledger[0][1].animate.shift(UP * 0.3),
+            lag_ratio=1,
             run_time=2
+        ))
+        self.remove(world_group, *ith_person_msg, *arr)
+        self.wait()
+        self.play(
+            transform_file_to_hashed[0],
+            FadeIn(ith_msg_ledger_lbl[0]),
+            # lag_ratio=0.5,
+            run_time=3
         )
         self.wait()
         self.play(
-            Transform(
-                ith_person_msg_in_ledger[0][0][1], 
-                msg_file_hashed.move_to(ith_person_msg_in_ledger[0][0][1].get_center()),
-            ),
-            FadeIn(msg_file_hashed_lbl.move_to(ith_person_msg_in_ledger[0][0].get_center() + RIGHT * 0.1 + DOWN * 0.1)),
-            msg_file_hashed.animate.shift(DOWN * 0.3),
-            ith_person_msg_in_ledger[0][0][1].animate.shift(DOWN * 0.3),
+            FadeOut(ith_hash_sticker[0]),
+            # Restore(self.camera.frame)
+            self.camera.frame.animate.move_to(ledger).set(height=ledger.height*1.1)
+        )
+        self.wait()
+
+        # Animate the rest of folders - Hash and label hash them!
+        self.play(FadeIn(*ith_hash_sticker[1:]))
+        self.wait()
+        self.play(LaggedStart(
+            *transform_file_to_hashed[1:],
+            FadeIn(*ith_msg_ledger_lbl[1:]),
+            FadeOut(*ith_hash_sticker[1:]),
+            lag_ratio=1,
+            run_time=3
+        ))
+
+        ith_obj_ledger_Animate = [mob.animate.move_to(axes.c2p(*coordinates_ordered[i])) for i, mob in enumerate(ith_obj_ledger)]
+        self.play(
+            *ith_obj_ledger_Animate,
             run_time=3
         )
-        self.wait(2)
-        self.play(
-            FadeOut(hash_sticker),
-            Restore(self.camera.frame)
-        )
-        self.wait(5)
-        
-        # Add hashes and labels in the array and reorder
-        ith_person_msg_in_ledger_lbl = [[msg_file_hashed_lbl]] 
-        for i in range(len(ith_person_msg_in_ledger)):
-            # skip first obj because its done in zoomed in scene
-            if i > 0:
-                ith_person_msg_in_ledger_lbl.append([])
-            for j in range(len(ith_person_msg_in_ledger[i])):
-                # skip first obj because its done in zoomed in scene
-                if i == 0 and j == 0:
-                    pass
 
-                ith_person_msg_in_ledger_lbl[i].append(msg_file_hashed_lbl.copy())
-                self.play(
-                    FadeIn(ith_person_msg_in_ledger_lbl[i][j].move_to(ith_person_msg_in_ledger[i][j].get_center() + RIGHT * 0.1 + DOWN * 0.1)),
-                )
-                # hash, transform and reorder
-
-        
-
-        # Place dots at grid coordinates (i, j)
-        # for i in range(1, ax_x_range):
-        #     for j in range(1, ax_y_range):
-        #         folder_i = msg.copy().move_to(axes.c2p(i, j))
-        #         self.add(folder_i)
+        time_lbl_FadeIn = [FadeIn(time_lbl[i].next_to(ith_obj_ledger[i], UP)) for i in range(len(time_lbl))] 
+        self.play(LaggedStart(
+            *time_lbl_FadeIn,
+            lag_ratio=0.2,
+        ))
+        self.wait(3)
 
         # <<< 2nd Section <<<
-
-
 # <<< 01 - Need for hashes <<<
 
 class Folder(Scene):
@@ -365,17 +396,19 @@ class NeedForSignatures(Scene):
 
 
 # >>> Array of folders in Ledger >>>
-class ArrayFolders(Scene):
+class TempExperimental(Scene):
     def construct(self):
         folder_back = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-back-only.svg")
         folder_front = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-cover-only.svg")
         msg_file = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature.svg").move_to(folder_front.get_center() + UP * 0.6 + LEFT * 0.1).rotate(10 * PI / 180).scale(0.85)
-        msg = Group(folder_back, folder_front, msg_file).scale(0.2)
+        lbl = SVGMobject("../../../../assets/svg/excalidraw/label.svg")
+        msg = Group(folder_back, folder_front, msg_file, lbl).scale(0.2)
 
         folder_back.set_z_index(1)
         msg_file.set_z_index(2)
         folder_front.set_z_index(3)
-        self.remove(folder_back, folder_front, msg)
+        msg.set_z_index(4)
+        self.remove(folder_back, folder_front, msg_file, msg)
 
         box = Rectangle(height=7.0, width=10.0, color=LOGO_BLUE).move_to(RIGHT * 2)
         ax_x_range = 11
@@ -392,8 +425,31 @@ class ArrayFolders(Scene):
         # self.add(axes)
 
         # Place dots at grid coordinates (i, j)
+        ith_obj = []
+        ith_obj_group = []
+        coordinates_ordered = [(i, j) for j in range(ax_y_range - 1, 0, -1) for i in range(1, ax_x_range)]
+        coordinates_random = coordinates_ordered.copy()
+        random.seed(42)
+        random.shuffle(coordinates_random)
+        k = 0
+        print(coordinates_ordered)
+        print(coordinates_random)
         for i in range(1, ax_x_range):
             for j in range(1, ax_y_range):
-                folder_i = msg.copy().move_to(axes.c2p(i, j))
-                self.add(folder_i)
+                print(f"(i,j,k)=({i}, {j}, {k})")
+                ith_obj.append(msg.copy())
+                folder_i = ith_obj[k].move_to(axes.c2p(*coordinates_random[k]))
+                txt_ = Text(f"({i},{j})", color=BLACK, font_size=14).move_to(ith_obj[k].get_center()) 
+                txt_.set_z_index(k + 10)
+                self.remove(txt_)
+                ith_obj_group.append(Group(ith_obj[k], txt_))
+                self.add(
+                    # folder_i,
+                    # txt_,
+                    ith_obj_group[k]
+                )
+                k += 1
+
+        ith_obj_animate = [mob.animate.move_to(axes.c2p(*coordinates_ordered[k])) for k, mob in enumerate(ith_obj_group)]
+        self.play(*ith_obj_animate, run_time=5)
 # <<< Array of folders in Ledger <<<
