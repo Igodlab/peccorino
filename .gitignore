@@ -6,6 +6,7 @@
 media/
 __pycache__/
 *.ipynb
+*-backup.*
 
 # Rust byproducts
 !.cargo/
