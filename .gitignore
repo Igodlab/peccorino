@@ -5,6 +5,7 @@
 # Manim byproducts
 media/
 __pycache__/
+*.ipynb
 
 # Rust byproducts
 !.cargo/
