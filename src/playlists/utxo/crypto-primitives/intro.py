@@ -3,7 +3,7 @@ import numpy as np
 from helper_coordinates import PEOPLE, centerLabel, Character, HashLabel
 from utils import CoordinateHelper
 
-# random Generator as a global variable
+# random Generator variable
 rng = np.random.default_rng(seed=48)
 
 # >>> 00 - Title >>>
@@ -54,14 +54,13 @@ class NeedForHashes(MovingCameraScene):
 
         self.play(FadeIn(world))
         self.wait()
-        # self.play(world.animate.scale(2.5))
         self.play(world.animate.set_opacity(0.25))
         self.play(FadeIn(world_network))
         self.wait()
 
         for i, _ in enumerate(PEOPLE):
             self.play(FadeIn(person[i]), run_time=0.2)
-        self.wait(3)
+        self.wait()
         # <<< 1st Section <<<
 
         # >>> 2nd Section >>>
@@ -69,7 +68,7 @@ class NeedForHashes(MovingCameraScene):
         # Group world & people 
         world_group = Group(world, world_network, *person)
         ledger_box = Rectangle(width=7.0, height=6.0, color=XTXT).to_edge(RIGHT)
-        ledger_title = Text("Ledger", font="Excalifont", font_size=46).next_to(ledger_box, UP)
+        ledger_title = Text("Ledger", font="Excalifont", font_size=46, color=XTXT).next_to(ledger_box, UP)
         ledger = VGroup(ledger_box, ledger_title).shift(DOWN * 0.3)
 
         ax_x_range = 6
@@ -113,14 +112,14 @@ class NeedForHashes(MovingCameraScene):
         arr = []
 
         # weights for randomized folder placement in ledger array
-        def expWeights(size=10):
+        def expWeigths_(size=10):
             exp_sample = rng.exponential(1.0, size=1000)
             counts, _ = np.histogram(exp_sample, bins=size*2, density=False)
             counts_truncate = counts[:size]
             counts_truncate_norm = counts_truncate / np.sum(counts_truncate)
             return counts_truncate_norm        
 
-        exp_ = expWeights(size=nm)
+        exp_ = expWeigths_(size=nm)
         coordinates_rand_ix = rng.choice(range(nm), size=nm, replace=False, p=exp_)
         coordinates_ordered = [(i, j) for j in range(ax_y_range - 1, 0, -1) for i in range(1, ax_x_range)] # x_range goes from left to right, y_range from top to bottom
         coordinates_rand = [coordinates_ordered[i] for i in coordinates_rand_ix]
@@ -169,19 +168,19 @@ class NeedForHashes(MovingCameraScene):
             ith_msg_file_hashed[i].move_to(ith_msg_ledger[i][1].get_center())
             ith_msg_file_hashed[i].set_z_index(10 + i)
 
-            ith_msg_ledger_lbl.append(HashLabel(f"obj {i+1}", hash_text=False))
+            ith_msg_ledger_lbl.append(HashLabel(f"obj\\;{i+1}", hash_text=False))
             ith_msg_ledger_lbl[i].move_to(ith_msg_ledger[i].get_center() + RIGHT * 0.1 + DOWN * 0.1)
             ith_msg_ledger_lbl[i].set_z_index(100 + i)
 
-            ith_hash_sticker.append(hash_sticker.copy().set_opacity(0.25)) #.move_to(ith_msg_ledger[i]).get_center()) 
+            ith_hash_sticker.append(hash_sticker.copy()) # .set_opacity(0.25))  
             ith_hash_sticker[i].move_to(ith_msg_ledger[i].get_center())
             ith_hash_sticker[i].set_z_index(150 + i)
 
-            transform_file_to_hashed.append(Transform(ith_msg_ledger[i][1], ith_msg_file_hashed[i]))
+            transform_file_to_hashed.append(Transform(ith_msg_ledger[i][1], ith_msg_file_hashed[i], replace_mobject_with_target_in_scene=True))
 
             ith_obj_ledger.append(Group(ith_msg_ledger[i], ith_msg_file_hashed[i], ith_msg_ledger_lbl[i]))
 
-            time_lbl_ = f"time\\quad{i+1}"
+            time_lbl_ = f"time\\;{i+1}"
             time_lbl.append(MathTex(time_lbl_, font_size=18, color=XTXT))
 
 
@@ -198,39 +197,41 @@ class NeedForHashes(MovingCameraScene):
 
         # Zoom in and show a hash for first msg file
         self.camera.frame.save_state()
+        self.play(self.camera.frame.animate.move_to(ith_msg_ledger[0]).set(width=ith_msg_ledger[0].width*5))
+        self.wait()
         self.play(LaggedStart(
-            self.camera.frame.animate.move_to(ith_msg_ledger[0]).set(width=ith_msg_ledger[0].width*5),
-            FadeIn(ith_hash_sticker[0]),
+            ith_hash_sticker[0].animate.set_opacity(0.25),
             ith_msg_ledger[0][1].animate.shift(UP * 0.3),
-            lag_ratio=1,
-            run_time=2
+            lag_ratio=2,
+            run_time=4
         ))
         self.remove(world_group, *ith_person_msg, *arr)
         self.wait()
         self.play(
             transform_file_to_hashed[0],
             FadeIn(ith_msg_ledger_lbl[0]),
-            # lag_ratio=0.5,
             run_time=3
         )
         self.wait()
         self.play(
-            FadeOut(ith_hash_sticker[0]),
-            # Restore(self.camera.frame)
+            ith_hash_sticker[0].animate.set_opacity(0.0),
             self.camera.frame.animate.move_to(ledger).set(height=ledger.height*1.1)
         )
         self.wait()
 
-        # Animate the rest of folders - Hash and label hash them!
-        self.play(FadeIn(*ith_hash_sticker[1:]))
+        # Animate the rest of folders - Hash and label-hash them!
+        self.play(
+            *[mob.animate.set_opacity(0.25) for mob in ith_hash_sticker[1:]],
+            run_time=2,
+        )
         self.wait()
-        self.play(LaggedStart(
+        self.play(
             *transform_file_to_hashed[1:],
             FadeIn(*ith_msg_ledger_lbl[1:]),
-            FadeOut(*ith_hash_sticker[1:]),
-            lag_ratio=1,
-            run_time=3
-        ))
+            *[mob.animate.set_opacity(0.0) for mob in ith_hash_sticker[1:]],
+            run_time=4
+        )
+        self.wait()
 
         ith_obj_ledger_Animate = [mob.animate.move_to(axes.c2p(*coordinates_ordered[i])) for i, mob in enumerate(ith_obj_ledger)]
         self.play(
@@ -244,7 +245,6 @@ class NeedForHashes(MovingCameraScene):
             lag_ratio=0.2,
         ))
         self.wait(3)
-
         # <<< 2nd Section <<<
 # <<< 01 - Need for hashes <<<
 
@@ -316,7 +316,7 @@ class Folder(Scene):
         self.play(
             FadeIn(hash_lbl),
             # FadeOut(hash_lbl),
-            Transform(msg, msg_hashed)
+            Transform(msg, msg_hashed, replace_mobject_with_target_in_scene=True)
         )
         self.wait()
 
@@ -377,22 +377,146 @@ class GossipMessage(Scene):
 # >>> 02 - Need for signatures >>>
 class NeedForSignatures(Scene):
     def construct(self):
-        alice = Character(name="Alice", show_name=True).shift(UL * 2 + LEFT * 2)
-        bob = Character(name="Bob", show_name=True).shift(UR * 2 + RIGHT * 2)
-        mallory = Character(name="Mallory", show_name=True, expr="Smiling-Face-With-Horns").shift(DOWN * 2) # .shift(UP * 0.8)
+        alice = Character(name="Alice", show_name=True).move_to(UL * 2 + LEFT * 2)
+        bob = Character(name="Bob", show_name=True).move_to(UR * 2 + RIGHT * 2)
+        mallory = Character(name="Mallory", show_name=True, expr="Smiling-Face-With-Horns").move_to(DOWN * 2) 
         msg = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature").next_to(alice, RIGHT).scale(0.75)
+        msg_hashed = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature-encrypted.svg")
+
+        broadcast = Arc(radius=20, start_angle=3 * PI / 2, angle=PI / 2, color=PURE_GREEN).move_to(alice.get_center() + UL * 2)
 
         self.add(alice, bob)
-        self.wait(2)
-        self.play(
+        self.wait()
+        self.play(LaggedStart(
             FadeIn(msg),
+            Broadcast(broadcast, focal_point=alice.get_center(), n_mobs=10),
+            lag_ratio=1,
+            run_time=3
+        ))
+        self.play(
             msg.animate.next_to(bob, LEFT),
+            run_time=2,
         )
         self.wait()
         self.add(mallory)
         self.wait()
-
 # <<< 02 - Need for signatures <<<
+
+
+# >>> 03 - Regular Functions >>>
+class RegularFunctions(Scene):
+    def addPointsToSet(
+        self,
+        mob,
+        noise=0.25, 
+        n_elements=1,
+        label=False,
+        **kwargs
+    ):
+        amplitude = (mob.height / 2) * 0.75 
+        mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
+        mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
+        dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
+        
+        dots_w_lables = []
+        if label == True:
+            next_to_point = {"x": LEFT * 0.75, "y": RIGHT * 0.75}
+            for i, dot in enumerate(dots):
+                math_txt = "" + kwargs["var"] + f"_{i+1}"
+                dots_w_lables.append(VGroup(dot, MathTex(math_txt, color=XTXT, font_size=24).next_to(dot, next_to_point[kwargs["var"]])))
+
+            return dots_w_lables
+
+        return dots
+
+
+    def construct(self):
+        x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5)
+        x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
+        x_set = VGroup(x_set_circle, x_set_title)
+        x_elements = self.addPointsToSet(x_set_circle, n_elements=6, label=True, **{"color": TEAL_E, "stroke_width": 0.5, "var": "x"})
+
+        y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5)
+        y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
+        y_set = VGroup(y_set_circle, y_set_title)
+        y_elements = self.addPointsToSet(y_set_circle, n_elements=6, label=True, **{"color": RED_E, "stroke_width": 0.5, "var": "y"})
+
+        arr_fwd = []
+        for i, j in zip(x_elements, y_elements):
+            arr_fwd.append(
+                CurvedArrow(
+                    start_point=i[0].get_center(),
+                    end_point=j[0].get_center(),
+                    angle=-PI/3,
+                    color=XTXT,
+                    tip_length=0.2
+                ),
+            )
+        arr_fwd_w_label = [VGroup(mob, MathTex(f"F(x_{i}) = y").next_to(mob, UP)) for i, mob in enumerate(arr_fwd)]
+
+        self.add(x_set, y_set)
+        self.play(
+            # *[FadeIn(i) for i in x_elements], 
+            # *[FadeIn(i) for i in y_elements],
+            FadeIn(x_elements[2]),
+            FadeIn(y_elements[2]),
+        )
+        self.wait()
+        self.play(LaggedStart(
+            # *[FadeIn(i) for i in arr_fwd_w_label],
+            FadeIn(arr_fwd_w_label[2]),
+            lag_ratio=0.25
+        ))
+# <<< 03 - Regular Functions <<<
+
+# >>> 04 - Hash Functions >>>
+class HashFunctions(Scene):
+    def addPointsToSet(
+        self,
+        mob,
+        noise=0.25, 
+        n_elements=1,
+        **kwargs
+    ):
+        amplitude = (mob.height / 2) * 0.75 
+        mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
+        mat[:,0] += amplitude * np.linspace(1, -1, n_elements)
+        return [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
+
+    def construct(self):
+        x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5)
+        x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
+        x_set = VGroup(x_set_circle, x_set_title)
+        x_elements = self.addPointsToSet(x_set_circle, n_elements=6, **{"color": TEAL_E, "stroke_width": 0.5})
+
+        y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5)
+        y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
+        y_set = VGroup(y_set_circle, y_set_title)
+        y_elements = self.addPointsToSet(y_set_circle, n_elements=6, **{"color": RED_E, "stroke_width": 0.5})
+
+        arr = []
+        for i, j in zip(x_elements, y_elements):
+            arr.append(
+                CurvedArrow(
+                    start_point=i.get_center(),
+                    end_point=j.get_center(),
+                    angle=-PI/3,
+                    color=XTXT,
+                    tip_length=0.2
+                )
+            )
+
+        self.add(x_set, y_set)
+        self.play(
+            *[FadeIn(i) for i in x_elements], 
+            *[FadeIn(i) for i in y_elements],
+        )
+        self.wait()
+        self.play(LaggedStart(
+            *[FadeIn(i) for i in arr[-1::-1]],
+            lag_ratio=0.25
+        ))
+# <<< 04 - Hash Functions <<<
 
 
 # >>> Array of folders in Ledger >>>
