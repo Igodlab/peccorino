@@ -27,6 +27,7 @@ class Title(Scene):
         self.wait(3)
 # <<< 00 - Title <<<
 
+
 # >>> 01 - Need for hashes >>>
 # class NeedForHashes(Scene):
 class NeedForHashes(MovingCameraScene):
@@ -248,16 +249,33 @@ class NeedForHashes(MovingCameraScene):
         # <<< 2nd Section <<<
 # <<< 01 - Need for hashes <<<
 
+# >>> aux folder >>>
 class Folder(Scene):
     def construct(self):
-        DEBUG_MODE = False
+        code_txt = '''use sha2::{Sha256, Digest};
+fn main() {
+    let mut hasher = Sha256::new();
+    let string = "object1";
+    hasher.update(string);
+    let hash = hasher.finalize();
+    println!("Binary hash: H({:?}) = {:?}", string, hash);
 
+    let hex_hash = hex::encode(hash);
+}
+'''
         folder_back = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-back-only.svg")
         folder_front = SVGMobject("../../../../assets/svg/notoEmoji/File-Folder-cover-only.svg")
         msg = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature.svg").shift(UP * 2 + LEFT * 2)
         msg_hashed = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature-encrypted.svg").shift(DOWN + LEFT * 2)
-        code = SVGMobject("../../../../assets/svg/excalidraw/Code-Editor.svg").shift(UP * 2)
-        code_hashed = SVGMobject("../../../../assets/svg/excalidraw/Code-Editor-encrypted.svg").shift(DOWN)
+        # code = SVGMobject("../../../../assets/svg/excalidraw/Code-Editor.svg").shift(UP * 2)
+        # code_hashed = SVGMobject("../../../../assets/svg/excalidraw/Code-Editor-encrypted.svg").shift(DOWN)
+        code=Code(
+            code_string=code_txt,
+            language="rust",
+            background="window",
+            background_config={"stroke_color": "maroon"},
+            tab_width=2,
+        ).shift(UP * 2).scale(0.4)
         nft = SVGMobject("../../../../assets/svg/excalidraw/bored-ape.svg").shift(UP * 2 + RIGHT * 2)
         nft_hashed = SVGMobject("../../../../assets/svg/excalidraw/bored-ape-encrypted.svg").shift(DOWN + RIGHT * 2)
         # crypto_coin = SVGMobject("../../../../assets/svg/excalidraw/bitcoin-coins.svg").shift(UP * 2 + LEFT * 4)
@@ -271,8 +289,8 @@ class Folder(Scene):
         folder_back.set_z_index(1)
         nft.set_z_index(2)
         nft_hashed.set_z_index(3)
-        code.set_z_index(4)
-        code_hashed.set_z_index(5)
+        code.set_z_index(8)
+        # code_hashed.set_z_index(5)
         msg.set_z_index(6)
         msg_hashed.set_z_index(7)
         # crypto_coin.set_z_index(8)
@@ -286,7 +304,7 @@ class Folder(Scene):
             msg,
             msg_hashed,
             code,
-            code_hashed,
+            # code_hashed,
             nft,
             nft_hashed,
             # crypto_coin,
@@ -319,38 +337,8 @@ class Folder(Scene):
             Transform(msg, msg_hashed, replace_mobject_with_target_in_scene=True)
         )
         self.wait()
+# <<< aux folder <<<
 
-        # >>> Debug Mode >>>
-        dbg_objects = [
-            # folder_back,
-            # folder_front,
-            # msg, 
-            # msg_hashed, 
-            # code, 
-            # code_hashed, 
-            nft, 
-            # nft_hashed,
-            nft_lbl,
-            # hash_lbl
-        ]
-        cycle_colors = [XNEON_RED, XNEON_BLUE, XNEON_GREEN, XNEON_PURPLE]
-
-        for di, dObj in enumerate(dbg_objects):
-            # Debug coordinates if in debug mode
-            if DEBUG_MODE:
-                helper = CoordinateHelper.show_coordinates(
-                    dObj, 
-                    self, 
-                    show_points=False,
-                    label_scale=0.2,
-                    color=cycle_colors[di]
-                    
-                )
-                # Wait to observe the coordinates
-                self.wait(0.5)
-                # Remove helper after viewing (optional)
-                # self.remove(helper)
-        # <<< Debug Mode <<<
 
 class GossipMessage(Scene):
     def construct(self):
@@ -408,41 +396,156 @@ class RegularFunctions(Scene):
     def addPointsToSet(
         self,
         mob,
-        noise=0.25, 
-        n_elements=1,
-        label=False,
+        noise=0.1, 
+        n_elements=10,
+        labels=None,
         **kwargs
     ):
         amplitude = (mob.height / 2) * 0.75 
+        dots_w_labels = []
+        if labels is not None:
+            n_elements = len(labels)
+            mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
+            mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
+            dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
+            for i, dot in enumerate(dots):
+                if labels[i] == "...":
+                    dots[i].set_opacity(0.0)
+                    dots_w_labels.append(MathTex("\\vdots", color=XTXT, font_size=42).move_to(dot))
+                else:
+                    dots_w_labels.append(VGroup(dot, MathTex(labels[i], color=XTXT, font_size=32).next_to(dot, kwargs["label_position"])))
+            return dots_w_labels
+
         mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
         mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
         dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
-        
-        dots_w_lables = []
-        if label == True:
-            next_to_point = {"x": LEFT * 0.75, "y": RIGHT * 0.75}
-            for i, dot in enumerate(dots):
-                math_txt = "" + kwargs["var"] + f"_{i+1}"
-                dots_w_lables.append(VGroup(dot, MathTex(math_txt, color=XTXT, font_size=24).next_to(dot, next_to_point[kwargs["var"]])))
-
-            return dots_w_lables
-
         return dots
 
+    def construct(self):
+        scene_title = VGroup(
+            Text("Regular functions:\n", font="Excalifont", font_size=36, color=XTXT),
+            MathTex("\\\\ F:X\\mapsto Y", font_size=40, color=XTXT)
+        ).to_edge(UP)
+
+        x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5 + DOWN)
+        x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
+        x_set = VGroup(x_set_circle, x_set_title)
+        x_labs_ = ["x_1"] #, "x_2", "...", "x_n", "x_{n+1}", "...", "x_m"]
+        x_elements = self.addPointsToSet(
+            x_set_circle,
+            labels=x_labs_,
+            **{"color": XPURPLE, "stroke_width": 0.5, "label_position": LEFT * 0.75}
+        )
+
+        y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5 + DOWN)
+        y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
+        y_set = VGroup(y_set_circle, y_set_title)
+        y_labs_ = ["y_1"] #, "y_2", "...", "y_n"]
+        y_elements = self.addPointsToSet(
+            y_set_circle,
+            labels=y_labs_,
+            **{"color": XRED, "stroke_width": 0.5, "label_position": RIGHT * 0.75}
+        )
+
+
+        self.add(scene_title, x_set, y_set)
+
+        arr_fwd = []
+        arr_bck = []
+        for i, j in zip(x_elements[:len(y_elements)], y_elements):
+            arr_fwd.append(
+                CurvedArrow(
+                    start_point=i[0].get_center(),
+                    end_point=j[0].get_center(),
+                    angle=-60 * PI / 180,
+                    color=XTXT,
+                    tip_length=0.2
+                ),
+            )
+            arr_bck.append(
+                CurvedArrow(
+                    start_point=j[0].get_center(),
+                    end_point=i[0].get_center(),
+                    angle=-60 * PI / 180,
+                    color=XTXT,
+                    tip_length=0.2
+                ),
+            )
+        arr_fwd_w_label = [VGroup(mob, MathTex(f"F(x_{i+1}) = y_{i+1}", color=XTXT, font_size=32).next_to(mob, UP)) for i, mob in enumerate(arr_fwd) if type(mob) != MathTex]
+        arr_bck_w_label = [VGroup(mob, MathTex(r"F^{-1}"+f"(y_{i+1})=x_{i+1}", color=XTXT, font_size=32).next_to(mob, DOWN)) for i, mob in enumerate(arr_bck) if type(mob) != MathTex]
+
+        self.add(x_set, y_set)
+        self.play(
+            *[FadeIn(i) for i in x_elements], 
+            *[FadeIn(i) for i in y_elements],
+        )
+        self.wait()
+        self.play(
+            *[FadeIn(i) for i in arr_fwd_w_label],
+        )
+        self.wait()
+        self.play(
+            *[FadeIn(i) for i in arr_bck_w_label],
+        )
+        self.wait()
+# <<< 03 - Regular Functions <<<
+
+# >>> 05 - Collisions Functions >>>
+class Collisions(Scene):
+    def addPointsToSet(
+        self,
+        mob,
+        noise=0.1, 
+        n_elements=10,
+        labels=None,
+        **kwargs
+    ):
+        amplitude = (mob.height / 2) * 0.75 
+        dots_w_labels = []
+        if labels is not None:
+            n_elements = len(labels)
+            mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
+            mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
+            dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
+            for i, dot in enumerate(dots):
+                if labels[i] == "...":
+                    dots[i].set_opacity(0.0)
+                    dots_w_labels.append(MathTex("\\vdots", color=XTXT, font_size=40).move_to(dot))
+                else:
+                    dots_w_labels.append(VGroup(dot, MathTex(labels[i], color=XTXT, font_size=28).next_to(dot, kwargs["label_position"])))
+            return dots_w_labels
+
+        mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
+        mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
+        dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
+        return dots
 
     def construct(self):
         x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5)
         x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
         x_set = VGroup(x_set_circle, x_set_title)
-        x_elements = self.addPointsToSet(x_set_circle, n_elements=6, label=True, **{"color": TEAL_E, "stroke_width": 0.5, "var": "x"})
+        x_labs_ = ["x_1", "x_2", "...", "x_n", "x_{n+1}", "...", "x_m"]
+        x_elements = self.addPointsToSet(
+            x_set_circle,
+            labels=x_labs_,
+            **{"color": TEAL_E, "stroke_width": 0.5, "label_position": LEFT * 0.75}
+        )
 
         y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5)
         y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
         y_set = VGroup(y_set_circle, y_set_title)
-        y_elements = self.addPointsToSet(y_set_circle, n_elements=6, label=True, **{"color": RED_E, "stroke_width": 0.5, "var": "y"})
+        y_labs_ = ["y_1", "y_2", "...", "y_n"]
+        y_elements = self.addPointsToSet(
+            y_set_circle,
+            labels=y_labs_,
+            **{"color": RED_E, "stroke_width": 0.5, "label_position": RIGHT * 0.75}
+        )
+
+
+        self.add(x_set, y_set)
 
         arr_fwd = []
-        for i, j in zip(x_elements, y_elements):
+        for i, j in zip(x_elements[:len(y_elements)], y_elements):
             arr_fwd.append(
                 CurvedArrow(
                     start_point=i[0].get_center(),
@@ -452,59 +555,7 @@ class RegularFunctions(Scene):
                     tip_length=0.2
                 ),
             )
-        arr_fwd_w_label = [VGroup(mob, MathTex(f"F(x_{i}) = y").next_to(mob, UP)) for i, mob in enumerate(arr_fwd)]
-
-        self.add(x_set, y_set)
-        self.play(
-            # *[FadeIn(i) for i in x_elements], 
-            # *[FadeIn(i) for i in y_elements],
-            FadeIn(x_elements[2]),
-            FadeIn(y_elements[2]),
-        )
-        self.wait()
-        self.play(LaggedStart(
-            # *[FadeIn(i) for i in arr_fwd_w_label],
-            FadeIn(arr_fwd_w_label[2]),
-            lag_ratio=0.25
-        ))
-# <<< 03 - Regular Functions <<<
-
-# >>> 04 - Hash Functions >>>
-class HashFunctions(Scene):
-    def addPointsToSet(
-        self,
-        mob,
-        noise=0.25, 
-        n_elements=1,
-        **kwargs
-    ):
-        amplitude = (mob.height / 2) * 0.75 
-        mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
-        mat[:,0] += amplitude * np.linspace(1, -1, n_elements)
-        return [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
-
-    def construct(self):
-        x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5)
-        x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
-        x_set = VGroup(x_set_circle, x_set_title)
-        x_elements = self.addPointsToSet(x_set_circle, n_elements=6, **{"color": TEAL_E, "stroke_width": 0.5})
-
-        y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5)
-        y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
-        y_set = VGroup(y_set_circle, y_set_title)
-        y_elements = self.addPointsToSet(y_set_circle, n_elements=6, **{"color": RED_E, "stroke_width": 0.5})
-
-        arr = []
-        for i, j in zip(x_elements, y_elements):
-            arr.append(
-                CurvedArrow(
-                    start_point=i.get_center(),
-                    end_point=j.get_center(),
-                    angle=-PI/3,
-                    color=XTXT,
-                    tip_length=0.2
-                )
-            )
+        arr_fwd_w_label = [VGroup(mob, MathTex(f"F(x_{i+1}) = y_{i+1}").next_to(mob, UP)) for i, mob in enumerate(arr_fwd) if mob != MathTex]
 
         self.add(x_set, y_set)
         self.play(
@@ -513,10 +564,10 @@ class HashFunctions(Scene):
         )
         self.wait()
         self.play(LaggedStart(
-            *[FadeIn(i) for i in arr[-1::-1]],
+            *[FadeIn(i) for i in arr_fwd_w_label],
             lag_ratio=0.25
         ))
-# <<< 04 - Hash Functions <<<
+# <<< 05 - Collisions <<<
 
 
 # >>> Array of folders in Ledger >>>
