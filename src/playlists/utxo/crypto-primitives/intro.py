@@ -1,6 +1,6 @@
 from manim import *
 import numpy as np
-from helper_coordinates import PEOPLE, centerLabel, Character, HashLabel
+from helper_coordinates import PEOPLE, centerLabel, Character, HashLabel, addPointsToSet
 from utils import CoordinateHelper
 
 # random Generator variable
@@ -393,62 +393,30 @@ class NeedForSignatures(Scene):
 
 # >>> 03 - Regular Functions >>>
 class RegularFunctions(Scene):
-    def addPointsToSet(
-        self,
-        mob,
-        noise=0.1, 
-        n_elements=10,
-        labels=None,
-        **kwargs
-    ):
-        amplitude = (mob.height / 2) * 0.75 
-        dots_w_labels = []
-        if labels is not None:
-            n_elements = len(labels)
-            mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
-            mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
-            dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
-            for i, dot in enumerate(dots):
-                if labels[i] == "...":
-                    dots[i].set_opacity(0.0)
-                    dots_w_labels.append(MathTex("\\vdots", color=XTXT, font_size=42).move_to(dot))
-                else:
-                    dots_w_labels.append(VGroup(dot, MathTex(labels[i], color=XTXT, font_size=32).next_to(dot, kwargs["label_position"])))
-            return dots_w_labels
-
-        mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
-        mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
-        dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
-        return dots
-
     def construct(self):
-        scene_title = VGroup(
-            Text("Regular functions:\n", font="Excalifont", font_size=36, color=XTXT),
-            MathTex("\\\\ F:X\\mapsto Y", font_size=40, color=XTXT)
-        ).to_edge(UP)
+        title_0_ = Text("Regular functions", font="Excalifont", font_size=36, color=XTXT).shift(LEFT) 
+        title_1_ = MathTex("F:X\\mapsto Y", font_size=44, color=XTXT).next_to(title_0_, RIGHT) 
+        scene_title = VGroup(title_0_, title_1_).to_edge(UP)
 
         x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5 + DOWN)
         x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
         x_set = VGroup(x_set_circle, x_set_title)
-        x_labs_ = ["x_1"] #, "x_2", "...", "x_n", "x_{n+1}", "...", "x_m"]
-        x_elements = self.addPointsToSet(
-            x_set_circle,
+        x_labs_ = ["x_1\\in X"] #, "x_2", "...", "x_n", "x_{n+1}", "...", "x_m"]
+        x_elements = addPointsToSet(
+            mob=x_set_circle,
             labels=x_labs_,
-            **{"color": XPURPLE, "stroke_width": 0.5, "label_position": LEFT * 0.75}
+            **{"color": XPURPLE, "label_position": DL * 0.25}
         )
 
         y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5 + DOWN)
         y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
         y_set = VGroup(y_set_circle, y_set_title)
-        y_labs_ = ["y_1"] #, "y_2", "...", "y_n"]
-        y_elements = self.addPointsToSet(
-            y_set_circle,
+        y_labs_ = ["y_1\\in Y"] #, "y_2", "...", "y_n"]
+        y_elements = addPointsToSet(
+            mob=y_set_circle,
             labels=y_labs_,
-            **{"color": XRED, "stroke_width": 0.5, "label_position": RIGHT * 0.75}
+            **{"color": XRED, "label_position": DR * 0.25}
         )
-
-
-        self.add(scene_title, x_set, y_set)
 
         arr_fwd = []
         arr_bck = []
@@ -474,21 +442,86 @@ class RegularFunctions(Scene):
         arr_fwd_w_label = [VGroup(mob, MathTex(f"F(x_{i+1}) = y_{i+1}", color=XTXT, font_size=32).next_to(mob, UP)) for i, mob in enumerate(arr_fwd) if type(mob) != MathTex]
         arr_bck_w_label = [VGroup(mob, MathTex(r"F^{-1}"+f"(y_{i+1})=x_{i+1}", color=XTXT, font_size=32).next_to(mob, DOWN)) for i, mob in enumerate(arr_bck) if type(mob) != MathTex]
 
-        self.add(x_set, y_set)
+        # self.add(index_labels(*[arr[1][0] for arr in arr_fwd_w_label]))
+
+        self.play(LaggedStart(
+            Write(scene_title),
+            Create(x_set),
+            Create(y_set),
+            lag_ratio=1,
+            run_time=4
+        ))
+
         self.play(
-            *[FadeIn(i) for i in x_elements], 
-            *[FadeIn(i) for i in y_elements],
+            *[Write(i) for i in x_elements], 
+            *[Write(i) for i in y_elements],
         )
+
+        # Forward arrow
+        # Emphasize x_1 in  XPURPLE
         self.wait()
         self.play(
-            *[FadeIn(i) for i in arr_fwd_w_label],
+            *[Create(i) for i in arr_fwd_w_label],
+            run_time=1.25,
         )
         self.wait()
+        self.add(
+            *[i[1].set_color(XPURPLE) for i in x_elements],
+            *[arr[1][0][2:4].set_color(XPURPLE) for arr in arr_fwd_w_label],
+        )
+        self.wait()
+        self.add(
+            *[i[1].set_color(XTXT) for i in x_elements],
+            *[arr[1][0][2:4].set_color(XTXT) for arr in arr_fwd_w_label],
+        )
+        self.wait()
+        # Emphasize y_1 in  XRED
+        self.add(
+            *[i[1].set_color(XRED) for i in y_elements],
+            *[arr[1][0][6:].set_color(XRED) for arr in arr_fwd_w_label],
+        )
+        self.wait()
+        self.add(
+            *[i[1].set_color(XTXT) for i in y_elements],
+            *[arr[1][0][6:].set_color(XTXT) for arr in arr_fwd_w_label],
+        )
+        
+        # Backward arrow
+        # Emphasize y_1 in  XRED
+        self.wait(3)
         self.play(
-            *[FadeIn(i) for i in arr_bck_w_label],
+            *[Create(i) for i in arr_bck_w_label],
+            run_time=1.25,
+        )
+        self.wait()
+        self.add(
+            *[i[1].set_color(XRED) for i in y_elements],
+            *[arr[1][0][4:6].set_color(XRED) for arr in arr_bck_w_label],
+        )
+        self.wait()
+        self.add(
+            *[i[1].set_color(XTXT) for i in y_elements],
+            *[arr[1][0][4:6].set_color(XTXT) for arr in arr_bck_w_label],
+        )
+        self.wait()
+        # Emphasize x_1 in  XPURPLE
+        self.add(
+            *[i[1].set_color(XPURPLE) for i in x_elements],
+            *[arr[1][0][8:].set_color(XPURPLE) for arr in arr_bck_w_label],
+        )
+        self.wait()
+        self.add(
+            *[i[1].set_color(XTXT) for i in x_elements],
+            *[arr[1][0][8:].set_color(XTXT) for arr in arr_bck_w_label],
         )
         self.wait()
 # <<< 03 - Regular Functions <<<
+
+
+# >>> 04 - Hash Functions >>>
+ 
+# <<< 04 - Hash Functions <<<
+
 
 # >>> 05 - Collisions Functions >>>
 class Collisions(Scene):
