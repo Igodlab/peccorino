@@ -186,3 +186,43 @@ class Face(Scene):
         self.play(Transform(face, face2), run_time=0.5, rate_func=smooth)
         self.wait(2)
 # <<< Colored SVGs <<<
+
+    
+# >>> Add elements to sets >>>
+def addPointsToSet(
+    # self,
+    mob,
+    noise=0.1, 
+    n_elements=10,
+    labels=None,
+    **kwargs
+):
+    # random Generator variable
+    rng = np.random.default_rng(seed=48)
+
+    amplitude = (mob.height / 2) * 0.6 
+    dots_w_labels = []
+
+    if "stroke_width" not in kwargs:
+        strk_w = 1.5
+    else:
+        strk_w = kwargs["stroke_width"]
+
+    if labels is not None:
+        n_elements = len(labels)
+        mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
+        mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
+        dots = [Dot(color=kwargs["color"], stroke_color=XTXT, stroke_width=strk_w).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
+        for i, dot in enumerate(dots):
+            if labels[i] == "...":
+                dots[i].set_opacity(0.0)
+                dots_w_labels.append(MathTex("\\vdots", color=XTXT, font_size=42).move_to(dot))
+            else:
+                dots_w_labels.append(VGroup(dot, MathTex(labels[i], color=XTXT, font_size=32).next_to(dot, kwargs["label_position"])))
+        return dots_w_labels
+
+    mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
+    mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
+    dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
+    return dots
+# <<< Add elements to sets <<<
