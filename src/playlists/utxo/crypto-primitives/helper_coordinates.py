@@ -187,6 +187,15 @@ class Face(Scene):
         self.wait(2)
 # <<< Colored SVGs <<<
 
+# >>> Mix Latex and normal text >>>
+# class TextLatex(VGroup):
+#     def __init__(
+#         self,
+#         txt: str,
+#         custom_font: str ="Excalifont",
+#         **kwargs,
+#     ):
+# <<< Mix Latex and normal text <<<
     
 # >>> Add elements to sets >>>
 def addPointsToSet(
@@ -198,9 +207,9 @@ def addPointsToSet(
     **kwargs
 ):
     # random Generator variable
-    rng = np.random.default_rng(seed=48)
+    rng = np.random.default_rng(seed=43)
 
-    amplitude = (mob.height / 2) * 0.6 
+    amplitude = (mob.height / 2) * 0.85
     dots_w_labels = []
 
     if "stroke_width" not in kwargs:
