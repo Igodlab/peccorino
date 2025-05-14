@@ -73,7 +73,7 @@ class NeedForHashes(MovingCameraScene):
         # <<< 1st Section <<<
 
         # >>> 2nd Section >>>
-        self.next_section("Show world and ledger")
+        # self.next_section("Show world and ledger")
         # Group world & people 
         world_group = Group(world, world_network, *person)
         ledger_box = Rectangle(width=7.0, height=6.0, color=XTXT).to_edge(RIGHT)
@@ -402,6 +402,373 @@ class NeedForSignatures(Scene):
 # >>> 03 - Regular Functions >>>
 class RegularFunctions(Scene):
     def construct(self):
+        title_0_ = Text("Regular functions", font="Excalifont", font_size=36, color=XTXT) 
+        title_1_ = MathTex("F:X\\mapsto Y", font_size=44, color=XTXT).next_to(title_0_, RIGHT) 
+        scene_title = VGroup(title_0_, title_1_).move_to(ORIGIN).to_edge(UP)
+
+        x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5 + DOWN * 0.75)
+        x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
+        x_set = VGroup(x_set_circle, x_set_title)
+        x_labs = ["x_1"] 
+        x_elements = addPointsToSet(
+            mob=x_set_circle,
+            labels=x_labs,
+            height_span=(x_set_circle.height / 2) * 0.5,
+            **{"color": XPURPLE, "label_position": LEFT * 0.25}
+        )
+
+        y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5 + DOWN * 0.75)
+        y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
+        y_set = VGroup(y_set_circle, y_set_title)
+        y_labs = ["y_1"]
+        y_elements = addPointsToSet(
+            mob=y_set_circle,
+            labels=y_labs,
+            height_span=(y_set_circle.height / 2) * 0.5,
+            **{"color": XRED, "label_position": RIGHT * 0.25}
+        )
+
+        self.play(LaggedStart(
+            Write(scene_title),
+            Create(x_set),
+            Create(y_set),
+            lag_ratio=0.5,
+            run_time=3
+        ))
+
+        self.play(
+            *[Write(i) for i in x_elements], 
+            *[Write(i) for i in y_elements],
+        )
+
+        # Add arrows, labels and animate
+        arr_fwd = []
+        arr_bck = []
+        arr_fwd_w_label = []
+        arr_bck_w_label = []
+        map_ix = [0]
+        for k, i in enumerate(map_ix):
+            if i < 5:
+                j = i
+                arrow_arc = -60 * PI / 180
+            elif i == 5:
+                j = 2
+                arrow_arc = -30 * PI / 180
+            # elif i > 5:
+
+            arr_fwd += [CurvedArrow(
+                start_point=x_elements[i][0].get_center(),
+                end_point=y_elements[j][0].get_center(),
+                angle=arrow_arc,
+                color=XTXT,
+                tip_length=0.2
+            )]
+            arr_fwd_w_label += [VGroup(
+                arr_fwd[-1], 
+                MathTex(
+                    "F("+x_labs[i]+") ="+y_labs[j], 
+                    color=XTXT, 
+                    font_size=32,
+                    substrings_to_isolate=[
+                        x_labs[i],
+                        y_labs[j],
+                    ]
+                ).next_to(arr_fwd[-1], UP * 0.5)
+            )]
+        
+            arr_bck += [CurvedArrow(
+                start_point=y_elements[j][0].get_center(),
+                end_point=x_elements[i][0].get_center(),
+                angle=arrow_arc,
+                color=XTXT,
+                tip_length=0.2
+            )]
+            arr_bck_w_label += [VGroup(
+                arr_bck[-1], 
+                MathTex(
+                    r"F^{-1}("+y_labs[j]+") = "+x_labs[i],
+                    color=XTXT,
+                    font_size=32,
+                    substrings_to_isolate=[
+                        x_labs[i],
+                        y_labs[j],
+                    ]
+                ).next_to(arr_bck[-1], DOWN * 0.5)
+            )]
+
+            # F maps X -> Y
+            self.play(Create(arr_fwd_w_label[k]))
+            self.wait()
+            # emphasize x points in XPURPLE
+            self.play(
+                x_elements[i][1].animate.set_color(XPURPLE).scale(1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(x_labs[i]).animate.set_color(XPURPLE).scale(1.5), 
+                run_time=0.75
+            )
+            self.wait(0.5)
+            self.play(
+                x_elements[i][1].animate.set_color(XTXT).scale(1/1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(x_labs[i]).animate.set_color(XTXT).scale(1/1.5),
+                run_time=0.75
+            )
+            # emphasize y points in XRED
+            self.wait(0.5)
+            self.play(
+                y_elements[j][1].animate.set_color(XRED).scale(1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XRED).scale(1.5), 
+                run_time=0.75
+            )
+            self.wait(0.5)
+            self.play(
+                y_elements[j][1].animate.set_color(XTXT).scale(1/1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XTXT).scale(1/1.5),
+                run_time=0.75
+            )
+
+            # F inverse maps Y -> Y
+            self.play(Create(arr_bck_w_label[k]))
+            self.wait()
+            # emphasize y points in XRED
+            self.wait(0.5)
+            self.play(
+                y_elements[j][1].animate.set_color(XRED).scale(1.5),
+                arr_bck_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XRED).scale(1.5), 
+                run_time=0.75
+            )
+            self.wait(0.5)
+            self.play(
+                y_elements[j][1].animate.set_color(XTXT).scale(1/1.5),
+                arr_bck_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XTXT).scale(1/1.5),
+                run_time=0.75
+            )
+            # emphasize x points in XPURPLE
+            self.play(
+                x_elements[i][1].animate.set_color(XPURPLE).scale(1.5),
+                arr_bck_w_label[k][1].get_part_by_tex(x_labs[i]).animate.set_color(XPURPLE).scale(1.5), 
+                run_time=0.75
+            )
+            self.wait(0.5)
+            self.play(
+                x_elements[i][1].animate.set_color(XTXT).scale(1/1.5),
+                arr_bck_w_label[k][1].get_part_by_tex(x_labs[i]).animate.set_color(XTXT).scale(1/1.5),
+                run_time=0.75
+            )
+        self.wait()
+
+        txt_0_ = MathTex("F", font_size=38, color=XTXT).shift(DOWN * 0.2)
+        txt_01_ = Text("is an invertible function!", font="Excalifont", font_size=28, color=XTXT).next_to(txt_0_, RIGHT)
+        txt_0 = VGroup(txt_0_, txt_01_).move_to(ORIGIN).to_edge(DOWN) 
+        self.play(Write(txt_0))
+        self.wait(2)
+# <<< 03 - Regular Functions <<<
+
+
+# >>> 04 - Hash Functions >>>
+class HashFunctions(Scene):
+    def construct(self):
+        title_0_ = Text("Hash functions", font="Excalifont", font_size=36, color=XTXT) 
+        title_1_ = MathTex("H:X\\mapsto Y", font_size=46, color=XTXT).next_to(title_0_, RIGHT) 
+        scene_title = VGroup(title_0_, title_1_).move_to(ORIGIN).to_edge(UP)
+
+        incorrect_1 = SVGMobject("../../../../assets/svg/excalidraw/incorrect.svg").scale(0.5)
+        incorrect_2 = incorrect_1.copy()
+
+        x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5 + DOWN * 0.75)
+        x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
+        x_set = VGroup(x_set_circle, x_set_title)
+        x_labs = ["x_1"] 
+        x_elements = addPointsToSet(
+            mob=x_set_circle,
+            labels=x_labs,
+            height_span=(x_set_circle.height / 2) * 0.5,
+            **{"color": XPURPLE, "label_position": LEFT * 0.25}
+        )
+
+        y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5 + DOWN * 0.75)
+        y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
+        y_set = VGroup(y_set_circle, y_set_title)
+        y_labs = ["y_1"]
+        y_elements = addPointsToSet(
+            mob=y_set_circle,
+            labels=y_labs,
+            height_span=(y_set_circle.height / 2) * 0.5,
+            **{"color": XRED, "label_position": RIGHT * 0.25}
+        )
+
+        self.play(LaggedStart(
+            Write(scene_title),
+            Create(x_set),
+            Create(y_set),
+            lag_ratio=0.5,
+            run_time=3
+        ))
+        self.play(
+            *[Write(i) for i in x_elements], 
+            *[Write(i) for i in y_elements],
+        )
+
+        # Add arrows, labels and animate
+        arr_fwd = []
+        arr_bck = []
+        arr_fwd_w_label = []
+        arr_bck_w_label = []
+        map_ix = [0]
+        for k, i in enumerate(map_ix):
+            if i < 5:
+                j = i
+                arrow_arc = -60 * PI / 180
+            elif i == 5:
+                j = 2
+                arrow_arc = -30 * PI / 180
+            # elif i > 5:
+
+            arr_fwd += [CurvedArrow(
+                start_point=x_elements[i][0].get_center(),
+                end_point=y_elements[j][0].get_center(),
+                angle=arrow_arc,
+                color=XTXT,
+                tip_length=0.2
+            )]
+            arr_fwd_w_label += [VGroup(
+                arr_fwd[-1], 
+                MathTex(
+                    "H("+x_labs[i]+") ="+y_labs[j], 
+                    color=XTXT, 
+                    font_size=32,
+                    substrings_to_isolate=[
+                        x_labs[i],
+                        y_labs[j],
+                    ]
+                ).next_to(arr_fwd[-1], UP * 0.5)
+            )]
+        
+            arr_bck += [CurvedArrow(
+                start_point=y_elements[j][0].get_center(),
+                end_point=x_elements[i][0].get_center(),
+                angle=arrow_arc,
+                color=XTXT,
+                tip_length=0.2
+            )]
+            arr_bck_w_label += [VGroup(
+                arr_bck[-1], 
+                MathTex(
+                    r"H^{-1}("+y_labs[j]+") = "+x_labs[i],
+                    color=XTXT,
+                    font_size=32,
+                    substrings_to_isolate=[
+                        x_labs[i],
+                        y_labs[j],
+                    ]
+                ).next_to(arr_bck[-1], DOWN * 0.5)
+            )]
+
+            # F maps X -> Y
+            self.play(Create(arr_fwd_w_label[k]))
+            self.wait()
+            # emphasize x points in XPURPLE
+            self.play(
+                x_elements[i][1].animate.set_color(XPURPLE).scale(1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(x_labs[i]).animate.set_color(XPURPLE).scale(1.5), 
+                run_time=0.75
+            )
+            self.wait(0.5)
+            self.play(
+                x_elements[i][1].animate.set_color(XTXT).scale(1/1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(x_labs[i]).animate.set_color(XTXT).scale(1/1.5),
+                run_time=0.75
+            )
+            # emphasize y points in XRED
+            self.wait(0.5)
+            self.play(
+                y_elements[j][1].animate.set_color(XRED).scale(1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XRED).scale(1.5), 
+                run_time=0.75
+            )
+            self.wait(0.5)
+            self.play(
+                y_elements[j][1].animate.set_color(XTXT).scale(1/1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XTXT).scale(1/1.5),
+                run_time=0.75
+            )
+
+        self.play(Succession(
+            Create(arr_bck_w_label[0]),
+            FadeIn(incorrect_1.move_to(arr_bck_w_label[0].get_center())),
+            lag_ratio=1,
+            run_time=3,
+        ))
+        self.wait()
+        # Fade opaque
+        self.play(
+            *[i.animate.set_opacity(0.15) for i in x_elements],
+            *[i.animate.set_opacity(0.15) for i in y_elements],
+            *[i.animate.set_opacity(0.0) for i in arr_fwd_w_label],
+            *[i.animate.set_opacity(0.0) for i in arr_bck_w_label],
+            incorrect_1.animate.set_opacity(0.0),
+            run_time=1.5,
+        )
+        self.wait()
+
+        # Oranges to orange juice analogy
+        orange_ = SVGMobject("../../../../assets/svg/kawaii/orange.svg").scale(0.75)
+        oranges = Group(
+            orange_.shift(UR * 0.6),
+            orange_.copy().shift(LEFT * 0.4),
+            orange_.copy().shift(DOWN * 0.4)
+        ).scale(0.5).move_to(x_set_circle.get_center() + DOWN * 0.5)
+        orange_juice = SVGMobject("../../../../assets/svg/openMoji/orange-juice-jar.svg").scale(0.35).move_to(y_set_circle.get_center() + DOWN * 0.5)
+        blender = SVGMobject("../../../../assets/svg/excalidraw/blender.svg").scale(0.85).move_to(ORIGIN)
+        arr_to_blender = CurvedArrow(
+            start_point=oranges.get_center(),
+            end_point=blender.get_center(),
+            angle=-30 * PI / 180,
+            color=XTXT,
+            tip_length=0.0,
+        )
+        arr_to_juice = CurvedArrow(
+            start_point=blender.get_center(),
+            end_point=orange_juice.get_center(),
+            angle=-30 * PI / 180,
+            color=XTXT,
+            tip_length=0.2,
+        )
+        arr_to_oranges = CurvedArrow(
+            start_point=orange_juice.get_center(),
+            end_point=oranges.get_center(),
+            angle=-60 * PI / 180,
+            color=XTXT,
+            tip_length=0.2,
+        )
+        blender.set_z_index(6)
+        arr_to_blender.set_z_index(4)
+        arr_to_juice.set_z_index(5)
+
+        self.remove(blender, arr_to_blender, arr_to_juice)
+        self.play(Succession(
+            FadeIn(oranges),
+            Create(arr_to_blender),
+            FadeIn(blender),
+            Create(arr_to_juice),
+            FadeIn(orange_juice),
+            Create(arr_to_oranges),
+            FadeIn(incorrect_2.move_to(arr_to_oranges.get_center() + DOWN * 0.5)),
+            lag_start=3,
+            run_time=10,
+        ))
+        self.wait()
+
+        txt_0_ = MathTex("H", font_size=38, color=XTXT).shift(DOWN * 0.2)
+        txt_01_ = Text("is NOT an invertible function!", font="Excalifont", font_size=28, color=XTXT).next_to(txt_0_, RIGHT)
+        txt_0 = VGroup(txt_0_, txt_01_).move_to(ORIGIN).to_edge(DOWN) 
+        self.wait()
+        self.play(Write(txt_0))
+        self.wait(2)
+# <<< 04 - Hash Functions <<<
+
+
+# >>> 05 - Collisions Functions >>>
+class Collisions(Scene):
+    def construct(self):
         title_0_ = Text("Regular functions", font="Excalifont", font_size=36, color=XTXT).shift(LEFT) 
         title_1_ = MathTex("F:X\\mapsto Y", font_size=44, color=XTXT).next_to(title_0_, RIGHT) 
         scene_title = VGroup(title_0_, title_1_).to_edge(UP)
@@ -413,6 +780,7 @@ class RegularFunctions(Scene):
         x_elements = addPointsToSet(
             mob=x_set_circle,
             labels=x_labs,
+            height_span=(x_set_circle.height / 2) * 0.85,
             **{"color": XPURPLE, "label_position": LEFT * 0.25}
         )
 
@@ -423,6 +791,7 @@ class RegularFunctions(Scene):
         y_elements = addPointsToSet(
             mob=y_set_circle,
             labels=y_labs,
+            height_span=(y_set_circle.height / 2) * 0.6,
             **{"color": XRED, "label_position": RIGHT * 0.25}
         )
 
@@ -445,7 +814,7 @@ class RegularFunctions(Scene):
         arr_fwd_w_label = []
         arr_bck_w_label = []
         map_ix = [0,1,2,4,5]
-        for i in map_ix:
+        for k, i in enumerate(map_ix):
             if i < 5:
                 j = i
                 arrow_arc = -60 * PI / 180
@@ -494,248 +863,41 @@ class RegularFunctions(Scene):
                 ).next_to(arr_bck[-1], DOWN * 0.5)
             )]
 
-        for i, mapix in enumerate(map_ix):
-            self.play(Create(arr_fwd_w_label[i]))
+        # for i, mapix in enumerate(map_ix):
+            self.play(Create(arr_fwd_w_label[k]))
             self.wait()
             # emphasize x points in XPURPLE
             self.play(
-                x_elements[mapix][1].animate.set_color(XPURPLE).scale(1.3),
-                arr_fwd_w_label[i][1].get_part_by_tex(x_labs[mapix]).animate.set_color(XPURPLE).scale(1.3), 
+                x_elements[i][1].animate.set_color(XPURPLE).scale(1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(x_labs[i]).animate.set_color(XPURPLE).scale(1.5), 
                 run_time=0.75
             )
             self.wait(0.5)
             self.play(
-                x_elements[mapix][1].animate.set_color(XTXT).scale(1/1.3),
-                arr_fwd_w_label[i][1].get_part_by_tex(x_labs[mapix]).animate.set_color(XTXT).scale(1/1.3),
+                x_elements[i][1].animate.set_color(XTXT).scale(1/1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(x_labs[i]).animate.set_color(XTXT).scale(1/1.5),
                 run_time=0.75
             )
             # emphasize y points in XRED
             self.wait(0.5)
             self.play(
-                y_elements[mapix][1].animate.set_color(XRED).scale(1.3),
-                arr_fwd_w_label[i][1].get_part_by_tex(y_labs[mapix]).animate.set_color(XRED).scale(1.3), 
+                y_elements[j][1].animate.set_color(XRED).scale(1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XRED).scale(1.5), 
                 run_time=0.75
             )
             self.wait(0.5)
             self.play(
-                y_elements[mapix][1].animate.set_color(XTXT).scale(1/1.3),
-                arr_fwd_w_label[i][1].get_part_by_tex(y_labs[mapix]).animate.set_color(XTXT).scale(1/1.3),
+                y_elements[j][1].animate.set_color(XTXT).scale(1/1.5),
+                arr_fwd_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XTXT).scale(1/1.5),
                 run_time=0.75
             )
         self.wait()
 
-        txt_0_ = MathTex("F", font_size=32, color=XTXT) #.shift(LEFT * 0.5)
+        txt_0_ = MathTex("F", font_size=32, color=XTXT)
         txt_01_ = Text("is an invertible function!", font="Excalifont", font_size=28, color=XTXT).next_to(txt_0_, RIGHT)
         txt_0 = VGroup(txt_0_, txt_01_).move_to(ORIGIN).to_edge(DOWN) 
         self.wait()
         self.play(Write(txt_0))
-# <<< 03 - Regular Functions <<<
-
-
-# >>> 04 - Hash Functions >>>
-class HashFunctions(Scene):
-    def construct(self):
-        title_0_ = Text("Hash functions", font="Excalifont", font_size=36, color=XTXT).shift(LEFT) 
-        title_1_ = MathTex("H:X\\mapsto Y", font_size=44, color=XTXT).next_to(title_0_, RIGHT) 
-        scene_title = VGroup(title_0_, title_1_).to_edge(UP)
-
-        x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5 + DOWN)
-        x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
-        x_set = VGroup(x_set_circle, x_set_title)
-        x_labs = ["x_1\\in X"] #, "x_2", "...", "x_n", "x_{n+1}", "...", "x_m"]
-        x_elements = addPointsToSet(
-            mob=x_set_circle,
-            labels=x_labs,
-            **{"color": XPURPLE, "label_position": DL * 0.25}
-        )
-
-        y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5 + DOWN)
-        y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
-        y_set = VGroup(y_set_circle, y_set_title)
-        y_labs = ["y_1\\in Y"] #, "y_2", "...", "y_n"]
-        y_elements = addPointsToSet(
-            mob=y_set_circle,
-            labels=y_labs,
-            **{"color": XRED, "label_position": DR * 0.25}
-        )
-
-        arr_fwd = []
-        arr_bck = []
-        for i, j in zip(x_elements[:len(y_elements)], y_elements):
-            arr_fwd.append(
-                CurvedArrow(
-                    start_point=i[0].get_center(),
-                    end_point=j[0].get_center(),
-                    angle=-60 * PI / 180,
-                    color=XTXT,
-                    tip_length=0.2
-                ),
-            )
-            arr_bck.append(
-                CurvedArrow(
-                    start_point=j[0].get_center(),
-                    end_point=i[0].get_center(),
-                    angle=-60 * PI / 180,
-                    color=XTXT,
-                    tip_length=0.2
-                ),
-            )
-        arr_fwd_w_label = [VGroup(mob, MathTex(f"H(x_{i+1}) = y_{i+1}", color=XTXT, font_size=32).next_to(mob, UP)) for i, mob in enumerate(arr_fwd) if type(mob) != MathTex]
-        arr_bck_w_label = [VGroup(mob, MathTex(r"H^{-1}"+f"(y_{i+1})=x_{i+1}", color=XTXT, font_size=32).next_to(mob, DOWN)) for i, mob in enumerate(arr_bck) if type(mob) != MathTex]
-
-        # self.add(index_labels(*[arr[1][0] for arr in arr_fwd_w_label]))
-
-        self.play(LaggedStart(
-            Write(scene_title),
-            Create(x_set),
-            Create(y_set),
-            lag_ratio=1,
-            run_time=4
-        ))
-
-        self.play(
-            *[Write(i) for i in x_elements], 
-            *[Write(i) for i in y_elements],
-        )
-
-        # Forward arrow
-        # Emphasize x_1 in  XPURPLE
-        self.wait()
-        self.play(
-            *[Create(i) for i in arr_fwd_w_label],
-            run_time=1.25,
-        )
-        # self.wait()
-        # self.add(
-        #     *[i[1].set_color(XPURPLE) for i in x_elements],
-        #     *[arr[1][0][2:4].set_color(XPURPLE) for arr in arr_fwd_w_label],
-        # )
-        # self.wait()
-        # self.add(
-        #     *[i[1].set_color(XTXT) for i in x_elements],
-        #     *[arr[1][0][2:4].set_color(XTXT) for arr in arr_fwd_w_label],
-        # )
-        # self.wait()
-        # # Emphasize y_1 in  XRED
-        # self.add(
-        #     *[i[1].set_color(XRED) for i in y_elements],
-        #     *[arr[1][0][6:].set_color(XRED) for arr in arr_fwd_w_label],
-        # )
-        # self.wait()
-        # self.add(
-        #     *[i[1].set_color(XTXT) for i in y_elements],
-        #     *[arr[1][0][6:].set_color(XTXT) for arr in arr_fwd_w_label],
-        # )
-        #
-        # # Backward arrow
-        # # Emphasize y_1 in  XRED
-        # self.wait(3)
-        # self.play(
-        #     *[Create(i) for i in arr_bck_w_label],
-        #     run_time=1.25,
-        # )
-        # self.wait()
-        # self.add(
-        #     *[i[1].set_color(XRED) for i in y_elements],
-        #     *[arr[1][0][4:6].set_color(XRED) for arr in arr_bck_w_label],
-        # )
-        # self.wait()
-        # self.add(
-        #     *[i[1].set_color(XTXT) for i in y_elements],
-        #     *[arr[1][0][4:6].set_color(XTXT) for arr in arr_bck_w_label],
-        # )
-        # self.wait()
-        # # Emphasize x_1 in  XPURPLE
-        # self.add(
-        #     *[i[1].set_color(XPURPLE) for i in x_elements],
-        #     *[arr[1][0][8:].set_color(XPURPLE) for arr in arr_bck_w_label],
-        # )
-        # self.wait()
-        # self.add(
-        #     *[i[1].set_color(XTXT) for i in x_elements],
-        #     *[arr[1][0][8:].set_color(XTXT) for arr in arr_bck_w_label],
-        # )
-        # self.wait()
-# <<< 04 - Hash Functions <<<
-
-
-# >>> 05 - Collisions Functions >>>
-class Collisions(Scene):
-    def addPointsToSet(
-        self,
-        mob,
-        noise=0.1, 
-        n_elements=10,
-        labels=None,
-        **kwargs
-    ):
-        amplitude = (mob.height / 2) * 0.75 
-        dots_w_labels = []
-        if labels is not None:
-            n_elements = len(labels)
-            mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
-            mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
-            dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
-            for i, dot in enumerate(dots):
-                if labels[i] == "...":
-                    dots[i].set_opacity(0.0)
-                    dots_w_labels.append(MathTex("\\vdots", color=XTXT, font_size=40).move_to(dot))
-                else:
-                    dots_w_labels.append(VGroup(dot, MathTex(labels[i], color=XTXT, font_size=28).next_to(dot, kwargs["label_position"])))
-            return dots_w_labels
-
-        mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
-        mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
-        dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
-        return dots
-
-    def construct(self):
-        x_set_circle = Circle(radius=2, color=XTXT).move_to(LEFT * 3.5)
-        x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
-        x_set = VGroup(x_set_circle, x_set_title)
-        x_labs = ["x_1", "x_2", "...", "x_n", "x_{n+1}", "...", "x_m"]
-        x_elements = self.addPointsToSet(
-            x_set_circle,
-            labels=x_labs,
-            **{"color": TEAL_E, "stroke_width": 0.5, "label_position": LEFT * 0.75}
-        )
-
-        y_set_circle = Circle(radius=2, color=XTXT).move_to(RIGHT * 3.5)
-        y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
-        y_set = VGroup(y_set_circle, y_set_title)
-        y_labs = ["y_1", "y_2", "...", "y_n"]
-        y_elements = self.addPointsToSet(
-            y_set_circle,
-            labels=y_labs,
-            **{"color": RED_E, "stroke_width": 0.5, "label_position": RIGHT * 0.75}
-        )
-
-
-        self.add(x_set, y_set)
-
-        arr_fwd = []
-        for i, j in zip(x_elements[:len(y_elements)], y_elements):
-            arr_fwd.append(
-                CurvedArrow(
-                    start_point=i[0].get_center(),
-                    end_point=j[0].get_center(),
-                    angle=-PI/3,
-                    color=XTXT,
-                    tip_length=0.2
-                ),
-            )
-        arr_fwd_w_label = [VGroup(mob, MathTex(f"F(x_{i+1}) = y_{i+1}").next_to(mob, UP)) for i, mob in enumerate(arr_fwd) if mob != MathTex]
-
-        self.add(x_set, y_set)
-        self.play(
-            *[FadeIn(i) for i in x_elements], 
-            *[FadeIn(i) for i in y_elements],
-        )
-        self.wait()
-        self.play(LaggedStart(
-            *[FadeIn(i) for i in arr_fwd_w_label],
-            lag_ratio=0.25
-        ))
 # <<< 05 - Collisions <<<
 
 
