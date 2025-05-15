@@ -84,13 +84,21 @@ class Character(Group):
         self.h = self.person.height
         self.c = self.person.get_center()
 
+        if expr == "Smiling-Face-With-Horns":
+            position_offset = UP * 0.58 + RIGHT * 0.068
+            scale_offset = 0.55
+        else:
+            position_offset = UP * 0.52 + RIGHT * 0.068
+            scale_offset = 0.53
+
+
         if name is not None:
             color = PEOPLE[name]["color"]
             faceColor = PEOPLE[name]["faceColor"]
 
             # Option to show emotion
             face_path = f"../../../../assets/svg/openMoji/{expr}-{faceColor}.svg"
-            face = SVGMobject(face_path).shift(self.c + UP * 0.52 + RIGHT * 0.068).scale(0.53)
+            face = SVGMobject(face_path).shift(self.c + position_offset).scale(scale_offset)
             self.add(face)
 
             # Option to show name
@@ -199,28 +207,29 @@ class Face(Scene):
     
 # >>> Add elements to sets >>>
 def addPointsToSet(
-    # self,
     mob,
     noise=0.1, 
     n_elements=10,
+    height_span=None,
     labels=None,
     **kwargs
 ):
     # random Generator variable
     rng = np.random.default_rng(seed=43)
 
-    amplitude = (mob.height / 2) * 0.85
-    dots_w_labels = []
+    if height_span is None:
+        height_span = (mob.height / 2) * 0.75
 
     if "stroke_width" not in kwargs:
         strk_w = 1.5
     else:
         strk_w = kwargs["stroke_width"]
 
+    dots_w_labels = []
     if labels is not None:
         n_elements = len(labels)
         mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
-        mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
+        mat[:,0] += height_span * np.linspace(-1, 1, n_elements)
         dots = [Dot(color=kwargs["color"], stroke_color=XTXT, stroke_width=strk_w).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
         for i, dot in enumerate(dots):
             if labels[i] == "...":
@@ -231,7 +240,7 @@ def addPointsToSet(
         return dots_w_labels
 
     mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
-    mat[:,0] += amplitude * np.linspace(-1, 1, n_elements)
+    mat[:,0] += height_span * np.linspace(-1, 1, n_elements)
     dots = [Dot(color=kwargs["color"], stroke_width=kwargs["stroke_width"]).move_to(mob.get_center() + DOWN * i[0] + RIGHT * i[1]) for i in mat]
     return dots
 # <<< Add elements to sets <<<
