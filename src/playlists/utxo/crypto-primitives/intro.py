@@ -199,11 +199,6 @@ class NeedForHashes(MovingCameraScene):
             *ith_hash_sticker,
         )
         
-        # print(f"ith_msg_file_hashed={ith_msg_file_hashed}")
-        # print(f"ith_hash_sticker={ith_hash_sticker}")
-        # print(f"ith_msg_ledger_lbl={ith_msg_ledger_lbl}")
-        # print(f"ith_msg_ledger (obj [1])={[mob[1] for mob in ith_msg_ledger]}")
-
         # Zoom in and show a hash for first msg file
         self.camera.frame.save_state()
         self.play(self.camera.frame.animate.move_to(ith_msg_ledger[0]).set(width=ith_msg_ledger[0].width*5))
@@ -372,30 +367,136 @@ class GossipMessage(Scene):
 
 # >>> 02 - Need for signatures >>>
 class NeedForSignatures(Scene):
+# class NeedForSignatures(MovingCameraScene):
     def construct(self):
+        # camera = self.camera.frame
+        # camera.save_state()
+        # self.play(camera.animate.move_to().set(width=ith_msg_ledger[0].width*5))
+        #
+        # world = SVGMobject("../../../../assets/svg/excalidraw/world.svg").scale(2.5)
         alice = Character(name="Alice", show_name=True).move_to(UL * 2 + LEFT * 2)
         bob = Character(name="Bob", show_name=True).move_to(UR * 2 + RIGHT * 2)
         mallory = Character(name="Mallory", show_name=True, expr="Smiling-Face-With-Horns").move_to(DOWN * 2) 
-        msg = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature").next_to(alice, RIGHT).scale(0.75)
-        msg_hashed = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature-encrypted.svg")
+        
+        msg_bob = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature").next_to(alice, RIGHT).scale(0.75)
+        msg_mallory = msg_bob.copy()
+        msg_hashed_bob = SVGMobject("../../../../assets/svg/excalidraw/msg-for-signature-encrypted.svg").scale(0.75).move_to(msg_bob.get_center())
+        msg_hashed_mallory = msg_hashed_bob.copy().move_to(msg_mallory.get_center())
+
+        hash_sticker = SVGMobject("../../../../assets/svg/excalidraw/sticker-hash.svg").scale(1.25)
+        signature_sticker = SVGMobject("../../../../assets/svg/excalidraw/sticker_signature.svg").scale(1.25)
+        correct_sticker_ = SVGMobject("../../../../assets/svg/excalidraw/correct.svg").scale(0.35)
+        incorrect_sticker_ = SVGMobject("../../../../assets/svg/excalidraw/incorrect.svg").scale(0.35)
+        question_sticker_ = SVGMobject("../../../../assets/svg/excalidraw/question-mark.svg").scale(0.35)
+        correct_alice, correct_bob, correct_mallory = correct_sticker_.next_to(alice, DL * 0.1), correct_sticker_.copy().next_to(bob, DR * 0.1), correct_sticker_.copy().next_to(mallory, RIGHT * 0.5)
+        incorrect_alice, incorrect_bob, incorrect_mallory = incorrect_sticker_.next_to(alice, DL * 0.1), incorrect_sticker_.copy().next_to(bob, DR * 0.1), incorrect_sticker_.copy().next_to(mallory, RIGHT * 0.5)
+        question_alice, question_bob, question_mallory = question_sticker_.next_to(alice, DL * 0.1), question_sticker_.copy().next_to(bob, DR * 0.1), question_sticker_.copy().next_to(mallory, RIGHT * 0.5)
+
+        hash_sticker.set_z_index(10)
+        signature_sticker.set_z_index(11)
+        self.remove(hash_sticker)
+        self.remove(signature_sticker)
 
         broadcast = Arc(radius=20, start_angle=3 * PI / 2, angle=PI / 2, color=PURE_GREEN).move_to(alice.get_center() + UL * 2)
 
         self.add(alice, bob)
         self.wait()
-        self.play(LaggedStart(
-            FadeIn(msg),
-            Broadcast(broadcast, focal_point=alice.get_center(), n_mobs=10),
-            lag_ratio=1,
-            run_time=3
-        ))
+        txt_00 = Text("Alice wants to send a message to Bob and Bob ONLY!", font="Excalifont", font_size=28, color=XTXT).move_to(ORIGIN)
+        self.play(Write(txt_00))
+        self.wait()
+        self.play(FadeIn(msg_bob))
+        self.wait(0.5)
         self.play(
-            msg.animate.next_to(bob, LEFT),
-            run_time=2,
+            Broadcast(broadcast, focal_point=alice.get_center(), n_mobs=10, lag_ratio=0.5, run_time=3),
+            msg_bob.animate.next_to(bob, LEFT)
         )
         self.wait()
-        self.add(mallory)
+        self.play(
+            Create(correct_alice),
+            Create(correct_bob),
+            FadeOut(txt_00),
+        )
+        self.wait(2)
+        self.play(FadeOut(correct_alice), FadeOut(correct_bob), FadeOut(msg_bob))
+        self.play(FadeIn(mallory), run_time=3)
+        self.play(
+            Broadcast(broadcast, focal_point=alice.get_center(), n_mobs=10, lag_ratio=0.5, run_time=3),
+            FadeIn(msg_bob.next_to(alice, RIGHT)),
+            FadeIn(msg_mallory),
+            msg_bob.animate.next_to(bob, LEFT),
+            msg_mallory.animate.next_to(mallory, LEFT),
+        )
         self.wait()
+        self.play(
+            Create(incorrect_alice),
+            Create(incorrect_bob),
+            Create(correct_mallory),
+        )
+        self.wait()
+        txt_01 = Text("Is there a way we could\nuse hashes in this scenario?", font="Excalifont", font_size=28, color=XTXT).move_to(ORIGIN)
+        self.play(Write(txt_01))
+        self.wait()
+        self.play(FadeOut(incorrect_alice), FadeOut(incorrect_bob), FadeOut(correct_mallory), FadeOut(msg_bob), FadeOut(msg_mallory))
+        self.remove(txt_01)
+        self.wait()
+        self.play(
+            Broadcast(broadcast, focal_point=alice.get_center(), n_mobs=10, lag_ratio=0.5, run_time=3),
+            FadeIn(msg_bob.next_to(alice, RIGHT)),
+        )
+        self.play(FadeIn(hash_sticker.move_to(msg_bob.get_center())), run_time=1)
+        self.play(LaggedStart(
+            # FadeIn(hash_sticker.move_to(msg_bob.get_center())),
+            hash_sticker.animate.set_opacity(0.25),
+            Transform(msg_bob, msg_hashed_bob.move_to(msg_bob.get_center()), replace_mobject_with_target_in_scene=True),
+            lag_ratio=1.5,
+            run_time=3,
+        ))
+        self.add(msg_hashed_mallory.move_to(msg_hashed_bob.get_center()))
+        self.wait(0.5)
+        self.play(
+            hash_sticker.animate.set_opacity(0.0),
+            msg_hashed_bob.animate.next_to(bob, LEFT),
+            msg_hashed_mallory.animate.next_to(mallory, LEFT),
+        )
+        self.wait()
+        self.play(
+            Create(question_alice),
+            Create(question_bob),
+            Create(question_mallory),
+        )
+        self.wait()
+        txt_02 = Text("Alice's message is undecipherable\nto anyone else! Is there a way\nto make the message decipherable\nONLY to Bob?", font="Excalifont", font_size=24, color=XTXT).move_to(ORIGIN)
+        self.play(Write(txt_02))
+        self.wait(3)
+        self.play(FadeOut(question_alice), FadeOut(question_bob), FadeOut(question_mallory), FadeOut(msg_hashed_bob), FadeOut(msg_hashed_mallory), FadeOut(txt_02))
+        self.wait()
+
+        # Animate Signature
+        self.play(
+            Broadcast(broadcast, focal_point=alice.get_center(), n_mobs=10, lag_ratio=0.5, run_time=3),
+            FadeIn(msg_bob.next_to(alice, RIGHT)),
+        )
+        self.play(FadeIn(signature_sticker.move_to(msg_bob.get_center())), run_time=1)
+        self.play(LaggedStart(
+            # FadeIn(hash_sticker.move_to(msg_bob.get_center())),
+            signature_sticker.animate.set_opacity(0.25),
+            Transform(msg_bob, msg_hashed_bob.move_to(msg_bob.get_center()), replace_mobject_with_target_in_scene=True),
+            lag_ratio=1.5,
+            run_time=3,
+        ))
+        self.add(msg_hashed_mallory.move_to(msg_hashed_bob.get_center()))
+        self.wait(0.5)
+        self.play(
+            signature_sticker.animate.set_opacity(0.0),
+            msg_hashed_bob.animate.next_to(bob, LEFT),
+            msg_hashed_mallory.animate.next_to(mallory, LEFT),
+        )
+        self.wait()
+        self.play(
+            
+        )
+
+       
 # <<< 02 - Need for signatures <<<
 
 
