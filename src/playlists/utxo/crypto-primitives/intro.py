@@ -999,12 +999,11 @@ class Collisions(Scene):
         )
         self.wait(0.5)
         self.play(FadeOut(m_much_greater_n))
+        self.wait(0.5)
 
         # Add arrows, labels and animate
         arr_fwd = []
-        arr_bck = []
         arr_fwd_w_label = []
-        arr_bck_w_label = []
         # mapix indexes point to:
         #        [x1,x2,x3,xn,xn+1]
         #         |  |  |  |  |
@@ -1020,19 +1019,19 @@ class Collisions(Scene):
                 j = 2
                 arrow_arc = -30 * DEGREES
                 wait_between_arrows = 3
-            # elif i > 5:
 
             arr_fwd += [CurvedArrow(
                 start_point=x_elements[i][0].get_center(),
                 end_point=y_elements[j][0].get_center(),
                 angle=arrow_arc,
                 color=XTXT,
-                tip_length=0.2
+                tip_length=0.2,
+                fill_opacity=0
             )]
             arr_fwd_w_label += [VGroup(
                 arr_fwd[-1], 
                 MathTex(
-                    "F("+x_labs[i]+") ="+y_labs[j], 
+                    "H("+x_labs[i]+") ="+y_labs[j], 
                     color=XTXT, 
                     font_size=32,
                     substrings_to_isolate=[
@@ -1042,26 +1041,6 @@ class Collisions(Scene):
                 ).next_to(arr_fwd[-1], UP * 0.5).shift(RIGHT * 0.5)
             )]
         
-            arr_bck += [CurvedArrow(
-                start_point=y_elements[j][0].get_center(),
-                end_point=x_elements[i][0].get_center(),
-                angle=-60 * DEGREES,
-                color=XTXT,
-                tip_length=0.2
-            )]
-            arr_bck_w_label += [VGroup(
-                arr_bck[-1], 
-                MathTex(
-                    r"F^{-1}("+y_labs[j]+") = "+x_labs[i],
-                    color=XTXT,
-                    font_size=32,
-                    substrings_to_isolate=[
-                        x_labs[i],
-                        y_labs[j],
-                    ]
-                ).next_to(arr_bck[-1], DOWN * 0.5).shift(RIGHT * 0.5)
-            )]
-
             # animate inside the loop
             # start at second point
             self.play(Write(arr_fwd_w_label[k]), run_time=1.5)
@@ -1080,11 +1059,14 @@ class Collisions(Scene):
             )
 
             # Collision occurs at index 5
+            # NOTE.- when i == 5, j = 2
             if i == 5:
                 # bring back y_3, remove opacity emphasize y points in XRED
                 self.wait(0.3)
                 self.play(
                     y_elements[j].animate.set_opacity(1.0),
+                )
+                self.play(
                     y_elements[j][1].animate.set_color(XRED).scale(1.5),
                     arr_fwd_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XRED).scale(1.5), 
                     run_time=0.75
@@ -1094,8 +1076,10 @@ class Collisions(Scene):
                 self.play(
                     x_elements[j].animate.set_opacity(1.0),
                 )
-                self.wait(0.3)
                 # emphasize x points in XPURPLE
+                self.wait(0.3)
+                self.play(Write(arr_fwd_w_label[j], run_time=1.5))
+                self.wait(0.3)
                 self.play(
                     x_elements[j][1].animate.set_color(XPURPLE).scale(1.5),
                     arr_fwd_w_label[j][1].get_part_by_tex(x_labs[j]).animate.set_color(XPURPLE).scale(1.5), 
@@ -1114,13 +1098,7 @@ class Collisions(Scene):
                     arr_fwd_w_label[j][1].get_part_by_tex(y_labs[j]).animate.set_color(XRED).scale(1.5), 
                     run_time=0.75
                 )
-                self.play(FadeIn(collision.next_to(y_elements[j], DL * 0.25)))
-                # self.wait(0.3)
-                # self.play(
-                #     y_elements[j][1].animate.set_color(XTXT).scale(1/1.5),
-                #     arr_fwd_w_label[k][1].get_part_by_tex(y_labs[j]).animate.set_color(XTXT).scale(1/1.5),
-                #     run_time=0.75
-                # )
+                self.play(FadeIn(collision.next_to(y_elements[j], LEFT * 0.25)), run_time=2)
             else:
                 # emphasize y points in XRED
                 self.wait(0.3)
@@ -1138,12 +1116,47 @@ class Collisions(Scene):
                 # set opaque arrow
                 self.wait(wait_between_arrows)
                 self.play(
-                    x_elements[i].animate.set_opacity(0.15),
-                    y_elements[j].animate.set_opacity(0.15),
-                    arr_fwd_w_label[k].animate.set_opacity(0.0),
+                    x_elements[i].animate.set_opacity(0.25),
+                    y_elements[j].animate.set_opacity(0.25),
+                    FadeOut(arr_fwd_w_label[k]),
                 )
                 self.wait(0.3)
+        self.wait(2)
+
+        # exemplify more arrows more collisions
+        # more_map_ix indexes point to:
+        #             [ ... ,   xm ]
+        #               |        |
+        #               v        v
+        #            [collision,collision] # more arrows more collisions
+        more_map_ix = [6, 7]
+        arr_coll = []
+        arr_coll_svg = [collision.copy(), collision.copy()]
+
+        for k, i in enumerate(more_map_ix):
+            arr_coll += [CurvedArrow(
+                start_point=x_elements[i][0].get_center() + RIGHT * (0.1 - k / 10),
+                end_point=y_elements[i-3][0].get_center() + LEFT * 2.5 + DOWN * (k + 0.25),
+                angle=30 * DEGREES,
+                color=XTXT,
+                tip_length=0.2,
+                fill_opacity=0
+            )]
+            self.play(LaggedStart(
+                Write(arr_coll[k]),
+                FadeIn(arr_coll_svg[k].next_to(arr_coll[k][1], RIGHT * 0.25)),
+                lag_ratio=0.75,
+                run_time=1.5
+            ))
+            self.wait(0.3)
+        self.wait()
 # <<< 05 - Collisions <<<
+
+
+# >>> 06 - 2^kappa >>>
+class TwoKappa(MovingCameraScene):
+    def construct(self):
+# <<< 06 - 2^kappa <<<
 
 
 # >>> Array of folders in Ledger >>>
