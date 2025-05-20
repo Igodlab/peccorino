@@ -1,18 +1,5 @@
 from manim import *
-
-
-PEOPLE = {
-    "Alice": {"color": "#56B6F7", "faceColor": "SkyBlue"},       # (Bright Sky Blue) - Primary legitimate user/sender
-    "Bob": {"color": "#00E676", "faceColor": "VibrantGreen"},    # (Vibrant Green) - Primary legitimate receiver
-    "Charlie": {"color": "#FFDD00", "faceColor": "SunnyYellow"}, # (Sunny Yellow) - Third legitimate participant
-    "Eve": {"color": "#FF5252", "faceColor": "BrightRed"},       # (Bright Red) - Eavesdropper (passive attacker)
-    "Mallory": {"color": "#FF55FF", "faceColor": "HotPink"},     # (Hot Pink) - Malicious attacker (active)
-    "Trent": {"color": "#56CBCB", "faceColor": "Teal"},          # (Teal) - Trusted third party
-    "Peggy": {"color": "#C792EA", "faceColor": "SoftPurple"},    # (Soft Purple) - Prover in zero-knowledge proofs
-    "Victor": {"color": "#FF9E64", "faceColor": "WarmOrange"},   # (Warm Orange) - Verifier in zero-knowledge proofs
-    "Grace": {"color": "#AEEA00", "faceColor": "MintGreen"},     # (Mint Green) - Group coordinator
-    "Sybil": {"color": "#FF7AB2", "faceColor": "BrightPink"},    # (Bright Pink) - Multiple fake identities
-}
+from utils import PEOPLE
 
 # >>> Flatten List >>>
 def FlattenList(nested_list):
@@ -234,9 +221,15 @@ def addPointsToSet(
         for i, dot in enumerate(dots):
             if labels[i] == "...":
                 dots[i].set_opacity(0.0)
-                dots_w_labels.append(MathTex("\\vdots", color=XTXT, font_size=42).move_to(dot))
+                dots_w_labels.append(VGroup(
+                    MathTex("\\vdots", color=XTXT, font_size=42).move_to(dot),
+                    MathTex("")
+                ))
             else:
-                dots_w_labels.append(VGroup(dot, MathTex(labels[i], color=XTXT, font_size=32).next_to(dot, kwargs["label_position"])))
+                dots_w_labels.append(VGroup(
+                    dot, 
+                    MathTex(labels[i], color=XTXT, font_size=32).next_to(dot, kwargs["label_position"])
+                ))
         return dots_w_labels
 
     mat = np.round(rng.normal(size=(n_elements, 2)) *  noise, 2)
