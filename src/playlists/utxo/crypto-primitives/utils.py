@@ -1,5 +1,19 @@
 from manim import * 
 
+
+PEOPLE = {
+    "Alice": {"color": "#56B6F7", "faceColor": "SkyBlue"},       # (Bright Sky Blue) - Primary legitimate user/sender
+    "Bob": {"color": "#00E676", "faceColor": "VibrantGreen"},    # (Vibrant Green) - Primary legitimate receiver
+    "Charlie": {"color": "#FFDD00", "faceColor": "SunnyYellow"}, # (Sunny Yellow) - Third legitimate participant
+    "Eve": {"color": "#FF5252", "faceColor": "BrightRed"},       # (Bright Red) - Eavesdropper (passive attacker)
+    "Mallory": {"color": "#FF55FF", "faceColor": "HotPink"},     # (Hot Pink) - Malicious attacker (active)
+    "Trent": {"color": "#56CBCB", "faceColor": "Teal"},          # (Teal) - Trusted third party
+    "Peggy": {"color": "#C792EA", "faceColor": "SoftPurple"},    # (Soft Purple) - Prover in zero-knowledge proofs
+    "Victor": {"color": "#FF9E64", "faceColor": "WarmOrange"},   # (Warm Orange) - Verifier in zero-knowledge proofs
+    "Grace": {"color": "#AEEA00", "faceColor": "MintGreen"},     # (Mint Green) - Group coordinator
+    "Sybil": {"color": "#FF7AB2", "faceColor": "BrightPink"},    # (Bright Pink) - Multiple fake identities
+}
+
 # >>> Coordinate Helper Utility >>>
 class CoordinateHelper:
     @staticmethod
