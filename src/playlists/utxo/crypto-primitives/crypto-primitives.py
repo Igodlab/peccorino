@@ -1155,14 +1155,105 @@ class Collisions(Scene):
 class TwoKappa(MovingCameraScene):
     def construct(self):
         # recreate prev scene >>> 05 - Collisions >>>
-        x_set = VGroup(
-            
+        prev_scene_title = Text("Collisions", font="Excalifont", font_size=36, color=XTXT).move_to(ORIGIN).to_edge(UP) 
+
+        # Continue with current scene
+        scene_title = Text("Collisions resistance", font="Excalifont", font_size=36, color=XTXT).to_edge(UP) 
+
+        collision = SVGMobject("../../../../assets/svg/excalidraw/collision.svg").scale(0.5)
+
+        # Prev - create previous xset
+        x_set_circle = Circle(radius=3.0, color=XTXT).move_to(LEFT * 3.5 + DOWN * 0.75)
+        x_set_title = MathTex("X", color=XTXT, font_size=40).next_to(x_set_circle, UP)
+        # create x elements after growing circle
+        x_set = VGroup(x_set_circle, x_set_title)
+        x_labs = ["x_1", "x_2", "x_3", "...", "x_n", "x_{n+1}", "...", "x_m"]
+        x_elements = addPointsToSet(
+            mob=x_set_circle,
+            labels=x_labs,
+            height_span=(x_set_circle.height / 2) * 0.85,
+            **{"color": XPURPLE, "label_position": LEFT * 0.25}
         )
-        prev_title
-        prev_arr = []
-        prev_arr_w_lbl = []
-        collision_ = 
-        collisions = 
+
+        y_set_circle_small = Circle(radius=1.75, color=XTXT).move_to(RIGHT * 3.7 + DOWN * 0.75)
+        y_set_circle = Circle(radius=2.25, color=XTXT).move_to(RIGHT * 3.7 + DOWN * 0.75)
+        y_set_title = MathTex("Y", color=XTXT, font_size=40).next_to(y_set_circle, UP)
+        prev_y_set = VGroup(y_set_circle_small, y_set_title)
+        y_set = VGroup(y_set_circle, y_set_title)
+        prev_y_labs = ["y_1", "y_2", "y_3","...", "y_n"]
+        prev_y_elements = addPointsToSet(
+            mob=y_set_circle_small,
+            labels=prev_y_labs,
+            height_span=(y_set_circle_small.height / 2) * 0.6,
+            **{"color": XRED, "label_position": RIGHT * 0.25}
+        )
+        y_labs = ["y_1", "y_2", "y_3","...", "y_n", "...", "2_2^\\kappa"]
+        y_elements = addPointsToSet(
+            mob=y_set_circle,
+            labels=y_labs,
+            height_span=(y_set_circle.height / 2) * 0.6,
+            **{"color": XRED, "label_position": RIGHT * 0.25}
+        )
+
+        # Add arrows, labels and animate
+        arr_fwd = []
+        arr_fwd_w_label = []
+        # mapix indexes point to:
+        #             [x1,x2,x3,xn,xn+1,..., xm]
+        #              |  |  |  |  |     |   |
+        #              v  v  v  v  v     v   v
+        #             [y1,y2,y3,yn,y3, coll, coll] # collision in H(x3)=y3=H(n+1)
+        map_ix_xset = [2, 5, 6, 7]
+        map_ix_yset = [2, 2, 3, 4]
+        arr_coll = []
+        arr_coll_svg = [collision.copy(), collision.copy()]
+
+        # Recreate previous scene highlight elements & collisions
+        for i, j in zip(map_ix_xset, map_ix_yset):
+            if j < 3:
+                x0 = x_elements[i][0].get_center()
+                y0 = prev_y_elements[j][0].get_center()
+                arrow_arc = -60 * DEGREES
+            elif j >= 3:
+                x0 = x_elements[i][0].get_center()
+                y0 = prev_y_elements[j][0].get_center()
+                arrow_arc = -30 * DEGREES
+
+            arr_fwd += [CurvedArrow(
+                start_point=x0,
+                end_point=y0,
+                angle=arrow_arc,
+                color=XTXT,
+                tip_length=0.2,
+                fill_opacity=0
+            )]
+            if j < 3:
+                arr_fwd_w_label += [VGroup(
+                    arr_fwd[-1], 
+                    MathTex(
+                        "H("+x_labs[i]+") ="+y_labs[j], 
+                        color=XTXT, 
+                        font_size=32,
+                        substrings_to_isolate=[
+                            x_labs[i],
+                            y_labs[j],
+                        ]
+                    ).next_to(arr_fwd[-1], UP * 0.5).shift(RIGHT * 0.5)
+                )]
+
+
+        # recreate previous scene and transform to initial state
+        self.add(
+            prev_scene_title,
+            x_set,
+            prev_y_set,
+        )
+        self.wait(2)
+        self.play(
+            ReplacementTransform(y_set_circle_small, y_set_circle),
+            prev_y_set_title.animate.next_to(y_set_circle, UP),
+        )
+        self.wait(2)
 # <<< 06 - TwoKappa <<<
 
 
