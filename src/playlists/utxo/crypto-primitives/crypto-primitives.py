@@ -1,6 +1,4 @@
 from manim import *
-# from manim.mobject.text.text_mobject.MarkupText import MarkupText
-from manim.utils import tex_templates
 import numpy as np
 from helper_coordinates import centerLabel, Character, HashLabel, addPointsToSet
 from utils import PEOPLE, CoordinateHelper
@@ -1153,10 +1151,19 @@ class Collisions(Scene):
 # <<< 05 - Collisions <<<
 
 
-# >>> 06 - 2^kappa >>>
+# >>> 06 - TwoKappa >>>
 class TwoKappa(MovingCameraScene):
     def construct(self):
-# <<< 06 - 2^kappa <<<
+        # recreate prev scene >>> 05 - Collisions >>>
+        x_set = VGroup(
+            
+        )
+        prev_title
+        prev_arr = []
+        prev_arr_w_lbl = []
+        collision_ = 
+        collisions = 
+# <<< 06 - TwoKappa <<<
 
 
 # >>> Array of folders in Ledger >>>
